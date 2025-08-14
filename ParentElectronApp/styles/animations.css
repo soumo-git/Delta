@@ -1,0 +1,524 @@
+/* Custom Animations */
+
+/* Pulsing red glow animation */
+@keyframes glow-red-strong {
+  0% {
+    box-shadow: 0 0 6px #ff0000;
+  }
+  100% {
+    box-shadow: 0 0 20px #ff0000, 0 0 30px #cc0000;
+  }
+}
+
+.animate-pulse-strong {
+  animation: glow-red-strong 1.5s ease-in-out infinite alternate;
+}
+
+/* Green glow animation for inputs */
+@keyframes glow-green {
+  0% {
+    text-shadow: 0 0 4px #22c55e;
+  }
+  100% {
+    text-shadow: 0 0 12px #22c55e;
+  }
+}
+
+.animate-glow-input {
+  animation: glow-green 2s ease-in-out infinite alternate;
+}
+
+/* Pulse animation for live indicators */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Particle movement animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Slide in from left */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slideInLeft {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+/* Slide in from right */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.3s ease-out;
+}
+
+/* Scale up animation */
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scaleUp {
+  animation: scaleUp 0.2s ease-out;
+}
+
+/* Typing animation */
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.animate-typing {
+  animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+  white-space: nowrap;
+  overflow: hidden;
+  border-right: 3px solid rgba(255, 255, 255, 0.75);
+}
+
+@keyframes blink-caret {
+  from, to {
+    border-color: transparent;
+  }
+  50% {
+    border-color: rgba(255, 255, 255, 0.75);
+  }
+}
+
+/* Terminal-style typing animation for heading */
+@keyframes terminal-typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.terminal-typing {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  border-right: 2px solid #22c55e;
+  animation: terminal-typing 2.5s steps(25, end), terminal-caret 1s step-end infinite;
+}
+
+@keyframes terminal-caret {
+  from, to {
+    border-color: transparent;
+  }
+  50% {
+    border-color: #22c55e;
+  }
+}
+
+/* Letter animation for hover effect */
+@keyframes letterUp {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes letterDown {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.letter-animate-up {
+  animation: letterUp 0.3s ease-in-out;
+}
+
+.letter-animate-down {
+  animation: letterDown 0.3s ease-in-out;
+}
+
+/* Terminal cursor blink */
+@keyframes terminalCursor {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}
+
+/* Wave animation for audio visualization */
+@keyframes wave {
+  0%, 100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(3);
+  }
+}
+
+/* Wave container styles */
+.wave-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+  gap: 4px;
+}
+
+.wave-bar {
+  width: 6px;
+  height: 30px;
+  background: linear-gradient(45deg, #10b981, #34d399, #6ee7b7);
+  border-radius: 3px;
+  transform-origin: center;
+  animation: wave 0.6s ease-in-out infinite alternate;
+}
+
+.wave-bar:nth-child(1) { animation-delay: 0s; }
+.wave-bar:nth-child(2) { animation-delay: 0.1s; }
+.wave-bar:nth-child(3) { animation-delay: 0.2s; }
+.wave-bar:nth-child(4) { animation-delay: 0.3s; }
+.wave-bar:nth-child(5) { animation-delay: 0.4s; }
+.wave-bar:nth-child(6) { animation-delay: 0.5s; }
+.wave-bar:nth-child(7) { animation-delay: 0.6s; }
+
+/* Pulsing microphone icon */
+@keyframes micPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+.mic-icon {
+  animation: micPulse 1.5s ease-in-out infinite;
+}
+
+/* Small audio wave bars for camera overlay */
+.audio-wave-bar {
+  width: 3px;
+  height: 12px;
+  background: linear-gradient(45deg, #10b981, #34d399);
+  border-radius: 1px;
+  transform-origin: center;
+  animation: wave 0.6s ease-in-out infinite alternate;
+}
+
+.audio-wave-bar:nth-child(1) { animation-delay: 0s; }
+.audio-wave-bar:nth-child(2) { animation-delay: 0.1s; }
+.audio-wave-bar:nth-child(3) { animation-delay: 0.2s; }
+
+/* Advanced Hacker Background Animations */
+
+/* Binary code rain effect */
+@keyframes binaryRain {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* Glitch effect */
+@keyframes glitch {
+  0%, 100% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-2px, 2px);
+  }
+  40% {
+    transform: translate(-2px, -2px);
+  }
+  60% {
+    transform: translate(2px, 2px);
+  }
+  80% {
+    transform: translate(2px, -2px);
+  }
+}
+
+/* Circuit board lines */
+@keyframes circuitFlow {
+  0% {
+    stroke-dashoffset: 1000;
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.3;
+  }
+}
+
+/* Data packet movement */
+@keyframes dataPacket {
+  0% {
+    transform: translateX(-100px) scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(50vw) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100vw) scale(0);
+    opacity: 0;
+  }
+}
+
+/* Terminal cursor blink */
+@keyframes terminalCursor {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}
+
+/* Scanning line effect */
+@keyframes scanLine {
+  0% {
+    transform: translateY(-100vh);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+/* Hexagon grid pattern */
+@keyframes hexGrid {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 60px 34px;
+  }
+}
+
+/* Password strength animations */
+@keyframes strengthPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes strengthGlow {
+  0%, 100% {
+    box-shadow: 0 0 5px currentColor;
+  }
+  50% {
+    box-shadow: 0 0 15px currentColor, 0 0 25px currentColor;
+  }
+}
+
+@keyframes strengthWave {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes requirementCheck {
+  0% {
+    transform: scale(0) rotate(-180deg);
+  }
+  50% {
+    transform: scale(1.2) rotate(0deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.strength-bar-active {
+  animation: strengthPulse 0.3s ease-in-out, strengthGlow 1s ease-in-out infinite;
+}
+
+.strength-bar-wave {
+  animation: strengthWave 0.6s ease-in-out infinite;
+}
+
+.requirement-checked {
+  animation: requirementCheck 0.5s ease-in-out;
+}
+
+/* OTP Input Animations */
+@keyframes otpPulse {
+  0%, 100% {
+    transform: scale(1);
+    border-color: #15803d;
+  }
+  50% {
+    transform: scale(1.05);
+    border-color: #22c55e;
+  }
+}
+
+.otp-input-filled {
+  animation: otpPulse 0.3s ease-in-out;
+  border-color: #22c55e !important;
+  background-color: rgba(34, 197, 94, 0.1) !important;
+}
+
+@keyframes otpError {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+.otp-input-error {
+  animation: otpError 0.3s ease-in-out;
+  border-color: #ef4444 !important;
+  background-color: rgba(239, 68, 68, 0.1) !important;
+}
+
+@keyframes otpSuccess {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.otp-verification-success {
+  animation: otpSuccess 0.5s ease-in-out;
+}
+
+/* Email verification status */
+.email-verifying {
+  border-color: #f59e0b !important;
+}
+
+.email-verified {
+  border-color: #22c55e !important;
+}
+
+.email-invalid {
+  border-color: #ef4444 !important;
+}
+
+/* Password strength colors */
+.strength-weak { background-color: #ef4444 !important; }
+.strength-fair { background-color: #f59e0b !important; }
+.strength-good { background-color: #22c55e !important; }
+.strength-strong { background-color: #16a34a !important; }
+
+.requirement-met {
+  background-color: #22c55e !important;
+}

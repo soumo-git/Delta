@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Project Delta</title>
+  
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/animations.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  
+  <!-- Firebase 8.x (namespace-based) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+</head>
+<body>
+  <!-- Authentication Screen -->
+  <div id="auth-screen" class="h-screen w-screen flex items-center justify-center bg-black font-mono relative overflow-hidden">
+    <div class="relative z-10 w-full max-w-md mx-4">
+      <!-- Logo Section -->
+      <div class="text-center mb-6">
+        <div class="inline-flex items-center justify-center w-24 h-24 bg-black border-2 border-green-500 rounded-2xl mb-4">
+          <span class="text-8xl font-bold text-green-400" style="font-size: 4rem;">▲</span>
+        </div>
+        <h1 id="project-delta-heading" class="text-2xl font-bold text-green-400 mb-1 tracking-widest uppercase cursor-pointer transition-all duration-300 hover:text-green-300" data-original-text="Project Delta" data-hover-text="Delta Protocol">Project Delta</h1>
+        <div class="text-green-700 text-lg mb-2">──────────────────────────────────</div>
+      </div>
+      <!-- Auth Card -->
+      <div class="bg-black border border-green-800 rounded-xl shadow-2xl p-8">
+        <!-- Loading State -->
+        <div id="auth-loading" class="text-center">
+          <div class="inline-flex items-center justify-center w-10 h-10 bg-black border-2 border-green-500 rounded-full mb-4">
+            <div class="w-5 h-5 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+          <p class="text-green-400 text-base font-medium">Checking authentication...</p>
+        </div>
+        <!-- Sign In Form -->
+        <div id="auth-signin" class="hidden">
+          <form id="email-signin-form" class="space-y-6">
+            <div class="space-y-2">
+              <label class="text-sm font-bold text-green-400 uppercase">Email</label>
+              <input 
+                type="email" 
+                id="signin-email" 
+                class="w-full px-4 py-3 bg-black border border-green-700 rounded text-green-300 placeholder-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 font-mono tracking-widest hacker-input"
+                placeholder=""
+                required 
+                autocomplete="email"
+              />
+            </div>
+            <div class="space-y-2">
+              <div class="flex justify-between items-center">
+                <label class="text-sm font-bold text-green-400 uppercase">Password</label>
+                <button type="button" id="forgot-password-btn" class="text-xs text-green-400 hover:text-green-300 transition-colors">Forgot?</button>
+              </div>
+              <input 
+                type="password" 
+                id="signin-password" 
+                class="w-full px-4 py-3 bg-black border border-green-700 rounded text-green-300 placeholder-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 font-mono tracking-widest hacker-input"
+                placeholder=""
+                required 
+                autocomplete="current-password"
+              />
+            </div>
+            <button 
+              type="submit" 
+              id="email-signin-btn" 
+              class="w-full border-2 border-green-500 bg-black text-green-400 font-bold py-3 px-6 rounded-xl transition-all duration-300 hover:bg-green-900 hover:text-green-200 tracking-widest uppercase"
+            >
+              Sign In
+            </button>
+          </form>
+          <div id="auth-signin-error" class="mt-4 p-3 bg-red-900/20 border border-red-500/30 rounded-lg text-red-400 text-sm text-center" style="display:none;"></div>
+          <div class="mt-8 text-center">
+            <p class="text-green-700 text-sm">
+              Don't have an account? 
+              <button id="show-signup-btn" class="text-green-400 hover:text-green-300 font-bold transition-colors">Sign Up</button>
+            </p>
+          </div>
+        </div>
+        
+        <!-- Forgot Password Dialog -->
+        <div id="forgot-password-dialog" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80">
+          <div class="bg-black border border-green-800 rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <div class="text-center mb-6">
+              <h2 class="text-xl font-bold text-green-400 mb-1 uppercase">Forgot Password</h2>
+              <div class="text-green-700 text-lg mb-2">────────────────────</div>
+            </div>
+            <form id="forgot-password-form" class="space-y-6">
+              <div class="space-y-2">
+                <label class="text-sm font-bold text-green-400 uppercase">Email</label>
+                <input 
+                  type="email" 
+                  id="forgot-password-email" 
+                  class="w-full px-4 py-3 bg-black border border-green-700 rounded text-green-300 placeholder-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 font-mono tracking-widest hacker-input"
+                  placeholder=""
+                  required 
+                  autocomplete="email"
+                />
+              </div>
+              <div class="flex space-x-4">
+                <button 
+                  type="button" 
+                  id="forgot-password-cancel-btn" 
+                  class="flex-1 border-2 border-red-500 bg-black text-red-400 font-bold py-3 px-6 rounded-xl transition-all duration-300 hover:bg-red-900 hover:text-red-200 tracking-widest uppercase"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  id="forgot-password-send-btn" 
+                  class="flex-1 border-2 border-green-500 bg-black text-green-400 font-bold py-3 px-6 rounded-xl transition-all duration-300 hover:bg-green-900 hover:text-green-200 tracking-widest uppercase"
+                >
+                  Send
+                </button>
+              </div>
+            </form>
+            <div id="forgot-password-error" class="mt-4 p-3 bg-red-900/20 border border-red-500/30 rounded-lg text-red-400 text-sm text-center" style="display:none;"></div>
+            <div id="forgot-password-success" class="mt-4 p-3 bg-green-900/20 border border-green-500/30 rounded-lg text-green-400 text-sm text-center" style="display:none;"></div>
+          </div>
+        </div>
+        <!-- Sign Up Form -->
+        <div id="auth-signup" class="hidden">
+          <div class="text-center mb-6">
+            <h2 class="text-xl font-bold text-green-400 mb-1 uppercase">Create Account</h2>
+            <div class="text-green-700 text-lg mb-2">────────────────────</div>
+          </div>
+          <form id="email-signup-form" class="space-y-6">
+            <div class="space-y-2">
+              <label class="text-sm font-bold text-green-400 uppercase">Name</label>
+              <input 
+                type="text" 
+                id="signup-name" 
+                class="w-full px-4 py-3 bg-black border border-green-700 rounded text-green-300 placeholder-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 font-mono tracking-widest hacker-input"
+                placeholder=""
+                required 
+                autocomplete="name"
+              />
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-bold text-green-400 uppercase">Email</label>
+              <input 
+                type="email" 
+                id="signup-email" 
+                class="w-full px-4 py-3 bg-black border border-green-700 rounded text-green-300 placeholder-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 font-mono tracking-widest hacker-input"
+                placeholder=""
+                required 
+                autocomplete="email"
+              />
+              <div id="email-verification-status" class="text-xs hidden">
+                <div class="flex items-center space-x-2">
+                  <div id="email-verification-icon" class="w-4 h-4 rounded-full"></div>
+                  <span id="email-verification-text"></span>
+                </div>
+              </div>
+              <!-- OTP Verification Section -->
+              <div id="otp-verification-section" class="hidden">
+                <div class="mt-4 p-4 bg-black border border-green-700 rounded-lg">
+                  <div class="text-center mb-4">
+                    <p class="text-green-400 text-sm mb-2">Enter the 6-digit code sent to your email</p>
+                    <p id="otp-email-display" class="text-green-700 text-xs"></p>
+                    <div id="otp-timer" class="text-red-400 text-xs mt-2"></div>
+                  </div>
+                  <div class="flex justify-center space-x-2 mb-4">
+                    <input type="text" id="otp-input-1" class="w-12 h-12 text-center bg-black border border-green-700 rounded text-green-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 font-mono text-lg" maxlength="1" />
+                    <input type="text" id="otp-input-2" class="w-12 h-12 text-center bg-black border border-green-700 rounded text-green-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 font-mono text-lg" maxlength="1" />
+                    <input type="text" id="otp-input-3" class="w-12 h-12 text-center bg-black border border-green-700 rounded text-green-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 font-mono text-lg" maxlength="1" />
+                    <input type="text" id="otp-input-4" class="w-12 h-12 text-center bg-black border border-green-700 rounded text-green-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 font-mono text-lg" maxlength="1" />
+                    <input type="text" id="otp-input-5" class="w-12 h-12 text-center bg-black border border-green-700 rounded text-green-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 font-mono text-lg" maxlength="1" />
+                    <input type="text" id="otp-input-6" class="w-12 h-12 text-center bg-black border border-green-700 rounded text-green-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 font-mono text-lg" maxlength="1" />
+                  </div>
+                  <div class="flex justify-center space-x-4">
+                    <button type="button" id="verify-otp-btn" class="px-6 py-2 border border-green-500 bg-black text-green-400 font-bold rounded transition-all duration-300 hover:bg-green-900 hover:text-green-200 tracking-wider uppercase text-sm">
+                      Verify OTP
+                    </button>
+                    <button type="button" id="resend-otp-btn" class="px-6 py-2 border border-yellow-500 bg-black text-yellow-400 font-bold rounded transition-all duration-300 hover:bg-yellow-900 hover:text-yellow-200 tracking-wider uppercase text-sm">
+                      Resend OTP
+                    </button>
+                  </div>
+                  <div id="otp-error" class="mt-3 p-2 bg-red-900/20 border border-red-500/30 rounded text-red-400 text-xs text-center hidden"></div>
+                </div>
+              </div>
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-bold text-green-400 uppercase">Password</label>
+              <input 
+                type="password" 
+                id="signup-password" 
+                class="w-full px-4 py-3 bg-black border border-green-700 rounded text-green-300 placeholder-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 font-mono tracking-widest hacker-input"
+                placeholder=""
+                required 
+                autocomplete="new-password"
+                minlength="6"
+              />
+              <div id="password-strength-container" class="hidden">
+                <div class="flex items-center space-x-2 mb-2">
+                  <span class="text-xs text-green-700">Strength:</span>
+                  <div class="flex space-x-1">
+                    <div class="w-2 h-2 rounded-full bg-gray-600" id="strength-bar-1"></div>
+                    <div class="w-2 h-2 rounded-full bg-gray-600" id="strength-bar-2"></div>
+                    <div class="w-2 h-2 rounded-full bg-gray-600" id="strength-bar-3"></div>
+                    <div class="w-2 h-2 rounded-full bg-gray-600" id="strength-bar-4"></div>
+                  </div>
+                  <span id="strength-text" class="text-xs text-green-700"></span>
+                </div>
+                <div id="password-requirements" class="text-xs text-green-700 space-y-1">
+                  <div class="flex items-center space-x-2" id="req-length">
+                    <span class="w-2 h-2 rounded-full bg-gray-600"></span>
+                    <span>At least 8 characters</span>
+                  </div>
+                  <div class="flex items-center space-x-2" id="req-uppercase">
+                    <span class="w-2 h-2 rounded-full bg-gray-600"></span>
+                    <span>One uppercase letter</span>
+                  </div>
+                  <div class="flex items-center space-x-2" id="req-lowercase">
+                    <span class="w-2 h-2 rounded-full bg-gray-600"></span>
+                    <span>One lowercase letter</span>
+                  </div>
+                  <div class="flex items-center space-x-2" id="req-number">
+                    <span class="w-2 h-2 rounded-full bg-gray-600"></span>
+                    <span>One number</span>
+                  </div>
+                  <div class="flex items-center space-x-2" id="req-special">
+                    <span class="w-2 h-2 rounded-full bg-gray-600"></span>
+                    <span>One special character</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-bold text-green-400 uppercase">Confirm</label>
+              <input 
+                type="password" 
+                id="signup-confirm" 
+                class="w-full px-4 py-3 bg-black border border-green-700 rounded text-green-300 placeholder-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 font-mono tracking-widest hacker-input"
+                placeholder=""
+                required 
+                autocomplete="new-password"
+                minlength="6"
+              />
+            </div>
+            <button 
+              type="submit" 
+              id="email-signup-btn" 
+              class="w-full border-2 border-green-500 bg-black text-green-400 font-bold py-3 px-6 rounded-xl transition-all duration-300 hover:bg-green-900 hover:text-green-200 tracking-widest uppercase"
+            >
+              Create Account
+            </button>
+          </form>
+          <div id="auth-signup-error" class="mt-4 p-3 bg-red-900/20 border border-red-500/30 rounded-lg text-red-400 text-sm text-center" style="display:none;"></div>
+          <div class="mt-8 text-center">
+            <p class="text-green-700 text-sm">
+              Already have an account? 
+              <button id="show-signin-btn" class="text-green-400 hover:text-green-300 font-bold transition-colors">Sign In</button>
+            </p>
+          </div>
+        </div>
+        <!-- User Info -->
+        <div id="auth-user-info" class="hidden">
+          <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-500 to-green-700 rounded-full mb-4">
+              <img id="user-avatar" class="w-16 h-16 rounded-full" src="" alt="User Avatar" />
+            </div>
+            <h3 id="user-name" class="text-xl font-bold text-white mb-1"></h3>
+            <p id="user-email" class="text-gray-400 text-sm"></p>
+          </div>
+          
+          <div class="bg-white/10 border border-white/20 rounded-xl p-4 mb-6">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-gray-300 text-sm">Subscription Status</span>
+              <span id="subscription-status" class="text-green-400 text-sm font-semibold">Active</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-300 text-sm">Plan</span>
+              <span id="subscription-plan" class="text-blue-400 text-sm">Premium</span>
+            </div>
+          </div>
+          
+                         <button 
+                 id="continue-btn"
+                 class="w-full border-2 border-green-500 bg-black text-green-400 font-bold py-3 px-6 rounded-xl transition-all duration-300 hover:bg-green-900 hover:text-green-200 tracking-widest uppercase mb-3"
+               >
+                 Continue
+               </button>
+               
+               <button 
+                 id="signout-btn"
+                 class="w-full border border-green-700 bg-black text-green-400 font-semibold py-2 px-4 rounded-lg transition-all duration-300 hover:bg-green-900 hover:text-green-200 text-sm"
+               >
+                 Sign Out
+               </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Connect Screen -->
+  <div id="connect-screen" class="h-screen w-screen flex items-center justify-center bg-black relative overflow-hidden">
+    <!-- Particles Background -->
+    <canvas id="particles-canvas" class="particles-background"></canvas>
+    
+    <!-- Connect UI -->
+    <div class="relative z-10 border-2 border-red-600 p-8 rounded-lg shadow-2xl w-96 animate-pulse-strong">
+      <h2 class="text-white text-xl mb-4 font-bold font-mono">Enter Child ID</h2>
+      <input 
+        type="text" 
+        id="child-id-input"
+        placeholder="12-digit ID" 
+        class="bg-black border border-green-500 text-green-400 font-mono px-4 py-2 mb-4 w-full text-center animate-glow-input"
+        maxlength="12"
+      />
+      <button 
+        id="connect-btn"
+        class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 w-full transition rounded shadow-lg"
+      >
+        CONNECT
+      </button>
+    </div>
+  </div>
+
+  <!-- Dashboard Screen -->
+  <div id="dashboard-screen" class="h-screen w-screen flex text-white font-mono hidden" style="position:relative;">
+    <!-- Video Background (true dashboard background) -->
+    <video id="dashboard-bg-video" src="assets/dashboardbackground_loop.mp4" autoplay loop muted playsinline style="position:absolute; left:0; top:0; width:100%; height:100%; object-fit:cover; z-index:0; pointer-events:none;"></video>
+    <div id="dashboard-bg-video-error" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; z-index:10; color:#fff; background:rgba(0,0,0,0.7); font-size:2rem; align-items:center; justify-content:center; text-align:center;">
+      ⚠️ Video background failed to load or play.
+    </div>
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <img src="assets/Icon.ico" alt="Logo" class="sidebar-logo" />
+        <button id="sidebar-toggle-btn" class="sidebar-toggle-btn" title="Toggle sidebar" style="margin-right: 0.5rem; margin-top: 0.2rem; background: none; border: none; color: #aaa; font-size: 1.6em; cursor: pointer;">
+          <span id="sidebar-toggle-icon">☰</span>
+        </button>
+      </div>
+      <!-- Removed sidebar-header 'Features' -->
+      <button class="sidebar-btn" data-feature="camera"> Monitor Camera</button>
+      <button class="sidebar-btn" data-feature="screen"> Monitor Screen</button>
+      <button class="sidebar-btn" data-feature="location"> Monitor Location</button>
+      <button class="sidebar-btn" data-feature="sms"> Monitor SMS</button>
+      <button class="sidebar-btn" data-feature="calllog"> Monitor Call Log</button>
+      <button class="sidebar-btn" data-feature="mic"> Monitor Mic</button>
+      
+      <!-- Fixed Browser button with dropdown -->
+      <div class="browser-dropdown-container">
+        <button class="sidebar-btn fixed-browser-btn" id="browser-dropdown-btn">🌐 Browser ></button>
+        <div class="browser-dropdown" id="browser-dropdown">
+          <button class="dropdown-item" data-url="https://www.instagram.com">Login to Instagram</button>
+          <button class="dropdown-item" data-url="https://www.facebook.com">Login to Facebook</button>
+          <button class="dropdown-item" data-url="https://web.whatsapp.com">Login to WhatsApp</button>
+          <button class="dropdown-item" data-url="https://web.snapchat.com">Login to Snapchat</button>
+          <button class="dropdown-item" data-url="custom">Custom</button>
+        </div>
+      </div>
+      
+      <!-- Separator under browser -->
+      <div class="sidebar-separator-bottom"></div>
+      
+      <!-- User Profile Section -->
+      <div class="user-profile-section">
+        <div class="profile-icon-container">
+          <button id="profile-icon-btn" class="profile-icon-btn" title="User Profile">
+            <img id="profile-avatar" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDEyQzE0LjIxIDEyIDE2IDEwLjIxIDE2IDhDMTYgNS43OSAxNC4yMSA0IDEyIDRDOS43OSA0IDggNS43OSA4IDhDOCAxMC4yMSA5Ljc5IDEyIDEyIDEyWk0xMiAxNEM5LjMzIDE0IDQgMTUuMzQgNCAxOFYyMEgyMFYxOEMyMCAxNS4zNCAxNC42NyAxNCAxMiAxNFoiIGZpbGw9IiNmYmJmMjQiLz4KPC9zdmc+" alt="Profile" />
+          </button>
+          <div id="profile-dropdown" class="profile-dropdown">
+            <div class="profile-email" id="profile-email">user@example.com</div>
+            <button id="profile-signout-btn" class="profile-dropdown-btn">Sign Out</button>
+            <button id="profile-delete-btn" class="profile-dropdown-btn delete-btn">Delete Account</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Add more features as needed -->
+      <div class="sidebar-resize-handle" id="sidebar-resize-handle"></div>
+    </div>
+    <!-- Main Content Area -->
+    <div class="main-area flex-1 flex flex-col">
+      <!-- Top Bar -->
+      <div class="top-bar flex items-center px-6 py-3 border-b border-zinc-700">
+        <h1 class="text-xl font-bold tracking-wide">Project-Delta</h1>
+      </div>
+      <!-- Feature Windows Container -->
+      <div id="feature-windows" class="feature-windows flex-1 relative overflow-y-auto"></div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const bgVideo = document.getElementById('dashboard-bg-video');
+      if (bgVideo) {
+        console.log('Video element found:', bgVideo);
+        bgVideo.addEventListener('play', () => console.log('Video is playing'));
+        bgVideo.addEventListener('error', (e) => console.log('Video error:', e));
+        bgVideo.addEventListener('loadeddata', () => {
+          console.log('Video loaded');
+          // Try to force play in case autoplay is blocked
+          const playPromise = bgVideo.play();
+          if (playPromise !== undefined) {
+            playPromise.then(() => {
+              console.log('Video play() promise resolved');
+            }).catch((err) => {
+              console.log('Video play() promise rejected:', err);
+            });
+          }
+        });
+        // Try to force play on user interaction as a fallback
+        document.addEventListener('click', () => {
+          if (bgVideo.paused) {
+            bgVideo.play().then(() => console.log('Video played on click')).catch((err) => console.log('Video play error on click:', err));
+          }
+        });
+      }
+    });
+  </script>
+  <script>
+    const bgVideo = document.getElementById('dashboard-bg-video');
+    const bgError = document.getElementById('dashboard-bg-video-error');
+    if (bgVideo) {
+      bgVideo.addEventListener('error', () => {
+        if (bgError) bgError.style.display = 'flex';
+      });
+      bgVideo.addEventListener('stalled', () => {
+        if (bgError) bgError.style.display = 'flex';
+      });
+      bgVideo.addEventListener('loadeddata', () => {
+        if (bgError) bgError.style.display = 'none';
+      });
+    }
+  </script>
+
+  <!-- JavaScript Modules -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="js/location-manager.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/auth-manager.js"></script>
+  <script src="js/particles-background.js"></script>
+  <!-- Remove matrix-background.js for dashboard -->
+  <!-- <script src="js/matrix-background.js"></script> -->
+  <script src="js/webrtc-manager.js"></script>
+  <script src="js/performance-monitor.js"></script>
+  <script src="js/ui-components.js"></script>
+  <script src="js/connect-screen.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

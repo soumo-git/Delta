@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Child</string>
+    <string name="screen_capture_notification_title">Screen Sharing Active</string>
+    <string name="screen_capture_notification_text">Your screen is being shared</string>
+    <string name="screen_capture_channel_name">Screen Capture Service</string>
+    <string name="screen_capture_channel_description">Screen capture is running</string>
+    <string name="accessibility_service_description">Keeps the app alive in the background for parental control and device monitoring.</string>
+</resources>

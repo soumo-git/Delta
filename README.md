@@ -1,5 +1,6 @@
 # Project Delta 🚀
 
+(This README was made by AI. If you see any mistakes, be kind and just directly use the apps. 🫡)
 Welcome to **Project Delta** — the kind of app combo that makes tech bros sweat, parents clap, and children cry softly into their pillows at night. 😅
 
 Delta is a **two-headed beast** 🐉:

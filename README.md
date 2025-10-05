@@ -47,8 +47,12 @@ Project Delta is not just an app. It’s a statement:
 that with enough stubbornness, curiosity, and questionable morality, you can bend tech into whatever shape you want.
 
 Children of the world, beware. ⚠️
+
 Parents of the world, rejoice. 🎉
+
 Developers of the world… maybe start updating your résumés. 📄
+
 And creeps, you already know what to do. 🙂
+
 
 👑 Built by **Soumo** — the non-coder who pulled it off anyway. 🙌

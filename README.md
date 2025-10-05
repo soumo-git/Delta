@@ -35,7 +35,7 @@ Yes. By hand. By guts. By pure audacity. 😤
 - 🛰️ **Location Monitoring**: Just hit on the start button and you'll get live location.
 - 📩 **SMS Monitoring**: You can see all previous sms and all upcoming sms live.
 - 📞 **Call Monitoring**: All call logs in your parent's dashboard. (Call recording coming soon ☠️)
-- 💬 **Chat Monitoring**: All social media chats in parent's hand - Privecy left the chat. (Working on it, but you can see the chat's - Just open the devoloper tools in ParentElectron app.)
+- 💬 **Chat Monitoring**: All social media chats in parent's hand - Privacy left the chat. (Working on it, but you can see the chat's - Just open the devoloper tools in ParentElectron app.)
 - 🔄 **Persistence**: Reboots? App restarts? The Child App just shrugs. Try harder, kid.
 - 🌑 **Dark Dashboard Vibes**: The Parent App is wrapped in a clean, scalable Electron UI—complete with cosmic particles swirling in the background. Because if you’re spying, might as well look cool.
 

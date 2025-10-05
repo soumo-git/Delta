@@ -518,199 +518,204 @@ fun DashboardScreenUI(
                 val isActive = panelActive[key] == true
 
                 // Optional mic wave or location map rendering beneath actions
-                val extraContent: (@Composable () -> Unit)? = if (key == "mic") {
-                    {
-                        val pm = getPeerManager?.invoke()
-                        val level by (pm?.inboundAudioLevel ?: kotlinx.coroutines.flow.MutableStateFlow(0f)).collectAsState(initial = 0f)
-                        // Simple bar wave
-                        Canvas(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 8.dp)
-                                .height(48.dp)
-                        ) {
-                            val bars = 24
-                            val barWidth = size.width / (bars * 1.5f)
-                            val gap = barWidth * 0.5f
-                            val maxH = size.height
-                            val amplitude = (maxH * (0.2f + level.coerceIn(0f, 1f))).coerceAtMost(maxH)
-                            for (i in 0 until bars) {
-                                val x = i * (barWidth + gap)
-                                val h = (amplitude * (0.5f + 0.5f * kotlin.math.sin(i / 2f)))
-                                drawRect(
-                                    color = Color(0xFF63FFBC),
-                                    topLeft = androidx.compose.ui.geometry.Offset(x, (maxH - h) / 2f),
-                                    size = androidx.compose.ui.geometry.Size(barWidth, h)
+                val extraContent: (@Composable () -> Unit)? = when (key) {
+                    "mic" -> {
+                        {
+                            val pm = getPeerManager?.invoke()
+                            val level by (pm?.inboundAudioLevel ?: kotlinx.coroutines.flow.MutableStateFlow(0f)).collectAsState(initial = 0f)
+                            // Simple bar wave
+                            Canvas(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 8.dp)
+                                    .height(48.dp)
+                            ) {
+                                val bars = 24
+                                val barWidth = size.width / (bars * 1.5f)
+                                val gap = barWidth * 0.5f
+                                val maxH = size.height
+                                val amplitude = (maxH * (0.2f + level.coerceIn(0f, 1f))).coerceAtMost(maxH)
+                                for (i in 0 until bars) {
+                                    val x = i * (barWidth + gap)
+                                    val h = (amplitude * (0.5f + 0.5f * kotlin.math.sin(i / 2f)))
+                                    drawRect(
+                                        color = Color(0xFF63FFBC),
+                                        topLeft = androidx.compose.ui.geometry.Offset(x, (maxH - h) / 2f),
+                                        size = androidx.compose.ui.geometry.Size(barWidth, h)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    "location" -> {
+                        {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(220.dp)
+                                    .padding(bottom = 8.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color(0xFF111111))
+                            ) {
+                                val lat = lastLat
+                                val lng = lastLng
+                                AndroidView(
+                                    factory = { ctx ->
+                                        WebView(ctx).apply {
+                                            settings.domStorageEnabled = true
+                                            settings.loadsImagesAutomatically = true
+                                            webViewClient = WebViewClient()
+                                            setBackgroundColor(0x00000000)
+                                        }
+                                    },
+                                    update = { wv ->
+                                        if (lat != null && lng != null) {
+                                            val html = """
+                                                        <!DOCTYPE html>
+                                                        <html>
+                                                          <head>
+                                                            <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
+                                                            <style>html,body{margin:0;padding:0;background:#111} img{display:block;width:100%;height:100%;object-fit:cover;border:0}</style>
+                                                          </head>
+                                                          <body>
+                                                            <img src=\"https://maps.locationiq.com/v3/staticmap?key=pk.eyJ1IjoiYXV0byIsImEiOiJja2V5a2V5a2V5In0&center=${lat},${lng}&zoom=15&size=600x300&markers=icon:large-red-cutout|${lat},${lng}\"/>
+                                                          </body>
+                                                        </html>
+                                                    """.trimIndent()
+                                            wv.loadDataWithBaseURL("https://maps.locationiq.com", html, "text/html", "utf-8", null)
+                                        } else {
+                                            if (wv.url != "about:blank") wv.loadUrl("about:blank")
+                                        }
+                                    }
                                 )
                             }
                         }
                     }
-                } else if (key == "location") {
-                    {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(220.dp)
-                                .padding(bottom = 8.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Color(0xFF111111))
-                        ) {
-                            val lat = lastLat
-                            val lng = lastLng
-                            AndroidView(
-                                factory = { ctx ->
-                                    WebView(ctx).apply {
-                                        settings.domStorageEnabled = true
-                                        settings.loadsImagesAutomatically = true
-                                        webViewClient = WebViewClient()
-                                        setBackgroundColor(0x00000000)
-                                    }
-                                },
-                                update = { wv ->
-                                    if (lat != null && lng != null) {
-                                        val html = """
-                                            <!DOCTYPE html>
-                                            <html>
-                                              <head>
-                                                <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
-                                                <style>html,body{margin:0;padding:0;background:#111} img{display:block;width:100%;height:100%;object-fit:cover;border:0}</style>
-                                              </head>
-                                              <body>
-                                                <img src=\"https://maps.locationiq.com/v3/staticmap?key=pk.eyJ1IjoiYXV0byIsImEiOiJja2V5a2V5a2V5In0&center=${lat},${lng}&zoom=15&size=600x300&markers=icon:large-red-cutout|${lat},${lng}\"/>
-                                              </body>
-                                            </html>
-                                        """.trimIndent()
-                                        wv.loadDataWithBaseURL("https://maps.locationiq.com", html, "text/html", "utf-8", null)
-                                    } else {
-                                        if (wv.url != "about:blank") wv.loadUrl("about:blank")
-                                    }
-                                }
-                            )
-                        }
-                    }
-                } else if (key == "camera") {
-                    {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(220.dp)
-                                .padding(bottom = 8.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Color(0xFF111111))
-                        ) {
-                            // XML SurfaceViewRenderer overlay via AndroidView
-                            AndroidView(
-                                factory = { ctx ->
-                                    val parent = FrameLayout(ctx)
-                                    LayoutInflater.from(ctx).inflate(
-                                        com.soumo.parentandroid.R.layout.webrtc_surface,
-                                        parent,
-                                        true
-                                    )
-                                    parent
-                                },
-                                update = { root ->
-                                    val pm = getPeerManager?.invoke()
-                                    val egl = pm?.eglContext()
-                                    val vt = pm?.remoteVideoTrack?.value
-                                    val svr = root.findViewById<org.webrtc.SurfaceViewRenderer>(com.soumo.parentandroid.R.id.remote_view)
-                                    if (egl != null) {
-                                        val tag = svr.tag
-                                        if (tag != "inited") {
-                                            try { svr.init(egl, null) } catch (_: Exception) {}
-                                            svr.setMirror(false)
-                                            svr.setEnableHardwareScaler(true)
-                                            svr.setScalingType(org.webrtc.RendererCommon.ScalingType.SCALE_ASPECT_FILL)
-                                            svr.tag = "inited"
-                                        }
-                                        // Ensure we do not attach duplicate sinks across updates
-                                        if (vt != null) {
-                                            try { vt.removeSink(svr) } catch (_: Exception) {}
-                                            vt.addSink(svr)
-                                        } else {
-                                            try { svr.clearImage() } catch (_: Exception) {}
-                                        }
-                                    }
-                                }
-                            )
-
-                            // Bottom controls inside camera panel
-                            Row(
+                    "camera" -> {
+                        {
+                            Box(
                                 modifier = Modifier
-                                    .align(Alignment.BottomStart)
-                                    .padding(8.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
+                                    .fillMaxWidth()
+                                    .height(220.dp)
+                                    .padding(bottom = 8.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color(0xFF111111))
                             ) {
-                                Button(
-                                    onClick = {
-                                        val ch = commandHandler
-                                        if (ch != null) ch.cameraSwitch()
+                                // XML SurfaceViewRenderer overlay via AndroidView
+                                AndroidView(
+                                    factory = { ctx ->
+                                        val parent = FrameLayout(ctx)
+                                        LayoutInflater.from(ctx).inflate(
+                                            com.soumo.parentandroid.R.layout.webrtc_surface,
+                                            parent,
+                                            true
+                                        )
+                                        parent
                                     },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFF1A1A1A),
-                                        contentColor = Color.White
-                                    )
-                                ) { Text("◎") }
-                            }
-
-                            IconButton(
-                                onClick = { cameraFullscreen = true },
-                                modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp)
-                            ) {
-                                Text("⤢", color = Color.White, fontSize = 18.sp)
-                            }
-                        }
-                    }
-                } else if (key == "sms") {
-                    {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(260.dp)
-                                .padding(bottom = 8.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Color(0xFF111111))
-                        ) {
-                            LazyColumn(modifier = Modifier.fillMaxSize().padding(12.dp)) {
-                                items(smsItems) { item ->
-                                    SmsRow(
-                                        address = if (item.address.isNotBlank()) item.address else "Unknown",
-                                        body = item.body,
-                                        smsType = item.smsType,
-                                        timestamp = item.timestamp
-                                    )
-                                }
-                            }
-                        }
-                    }
-                } else if (key == "calls") {
-                    {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(260.dp)
-                                .padding(bottom = 8.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Color(0xFF111111))
-                        ) {
-                            LazyColumn(modifier = Modifier.fillMaxSize().padding(12.dp)) {
-                                items(callItems) { item ->
-                                    val title = when {
-                                        item.name.isNotBlank() -> item.name
-                                        item.number.isNotBlank() -> item.number
-                                        else -> "Unknown"
+                                    update = { root ->
+                                        val pm = getPeerManager?.invoke()
+                                        val egl = pm?.eglContext()
+                                        val vt = pm?.remoteVideoTrack?.value
+                                        val svr = root.findViewById<org.webrtc.SurfaceViewRenderer>(com.soumo.parentandroid.R.id.remote_view)
+                                        if (egl != null) {
+                                            val tag = svr.tag
+                                            if (tag != "inited") {
+                                                try { svr.init(egl, null) } catch (_: Exception) {}
+                                                svr.setMirror(false)
+                                                svr.setEnableHardwareScaler(true)
+                                                svr.setScalingType(org.webrtc.RendererCommon.ScalingType.SCALE_ASPECT_FILL)
+                                                svr.tag = "inited"
+                                            }
+                                            // Ensure we do not attach duplicate sinks across updates
+                                            if (vt != null) {
+                                                try { vt.removeSink(svr) } catch (_: Exception) {}
+                                                vt.addSink(svr)
+                                            } else {
+                                                try { svr.clearImage() } catch (_: Exception) {}
+                                            }
+                                        }
                                     }
-                                    CallLogRow(
-                                        title = title,
-                                        callType = item.callType,
-                                        durationSeconds = item.durationSeconds,
-                                        timestamp = item.timestamp
-                                    )
+                                )
+
+                                // Bottom controls inside camera panel
+                                Row(
+                                    modifier = Modifier
+                                        .align(Alignment.BottomStart)
+                                        .padding(8.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Button(
+                                        onClick = {
+                                            val ch = commandHandler
+                                            ch?.cameraSwitch()
+                                        },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color(0xFF1A1A1A),
+                                            contentColor = Color.White
+                                        )
+                                    ) { Text("◎") }
+                                }
+
+                                IconButton(
+                                    onClick = { cameraFullscreen = true },
+                                    modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp)
+                                ) {
+                                    Text("⤢", color = Color.White, fontSize = 18.sp)
                                 }
                             }
                         }
                     }
-                } else null
+                    "sms" -> {
+                        {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(260.dp)
+                                    .padding(bottom = 8.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color(0xFF111111))
+                            ) {
+                                LazyColumn(modifier = Modifier.fillMaxSize().padding(12.dp)) {
+                                    items(smsItems) { item ->
+                                        SmsRow(
+                                            address = item.address.ifBlank { "Unknown" },
+                                            body = item.body,
+                                            smsType = item.smsType,
+                                            timestamp = item.timestamp
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    "calls" -> {
+                        {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(260.dp)
+                                    .padding(bottom = 8.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color(0xFF111111))
+                            ) {
+                                LazyColumn(modifier = Modifier.fillMaxSize().padding(12.dp)) {
+                                    items(callItems) { item ->
+                                        val title = when {
+                                            item.name.isNotBlank() -> item.name
+                                            item.number.isNotBlank() -> item.number
+                                            else -> "Unknown"
+                                        }
+                                        CallLogRow(
+                                            title = title,
+                                            timestamp = item.timestamp
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else -> null
+                }
 
                 FloatingPanel(
                     title = panel.title,
@@ -925,8 +930,6 @@ private fun SmsRow(
 @Composable
 private fun CallLogRow(
     title: String,
-    callType: String,
-    durationSeconds: Long,
     timestamp: Long
 ) {
     Column(modifier = Modifier

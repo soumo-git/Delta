@@ -1,9 +1,15 @@
 package com.soumo.child.webrtc
 
 import android.content.Context
-import org.webrtc.*
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.suspendCancellableCoroutine
+import org.webrtc.DefaultVideoDecoderFactory
+import org.webrtc.DefaultVideoEncoderFactory
+import org.webrtc.EglBase
+import org.webrtc.MediaConstraints
+import org.webrtc.PeerConnection
+import org.webrtc.PeerConnectionFactory
+import org.webrtc.SdpObserver
+import org.webrtc.SessionDescription
 import kotlin.coroutines.resume
 
 class PhantomPeerManager(
@@ -36,61 +42,42 @@ class PhantomPeerManager(
         peerConnection = peerConnectionFactory.createPeerConnection(rtcConfig, observer)
     }
 
-    fun createOffer(sdpObserver: SdpObserver) {
-        peerConnection?.createOffer(sdpObserver, MediaConstraints())
-    }
-
-    fun createAnswer(sdpObserver: SdpObserver) {
-        peerConnection?.createAnswer(sdpObserver, MediaConstraints())
-    }
-
-    fun setLocalDescription(sdp: SessionDescription, sdpObserver: SdpObserver) {
-        peerConnection?.setLocalDescription(sdpObserver, sdp)
-    }
-
     fun setRemoteDescription(sdp: SessionDescription, sdpObserver: SdpObserver) {
         peerConnection?.setRemoteDescription(sdpObserver, sdp)
     }
 
-    fun addIceCandidate(candidate: IceCandidate) {
-        peerConnection?.addIceCandidate(candidate)
-    }
-
     fun getPeerConnection(): PeerConnection? = peerConnection
     fun getFactory(): PeerConnectionFactory = peerConnectionFactory
-    
+
     // Non-Trickle ICE: Wait for ICE gathering to complete and return SDP with all candidates
-    @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun createNonTrickleOffer(): SessionDescription? {
         return createNonTrickleSdp(isOffer = true)
     }
-    @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun createNonTrickleAnswer(): SessionDescription? {
         return createNonTrickleSdp(isOffer = false)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun createNonTrickleSdp(isOffer: Boolean): SessionDescription? {
         val constraints = MediaConstraints().apply {
             mandatory.add(MediaConstraints.KeyValuePair("TrickleIce", "false"))
         }
         return suspendCancellableCoroutine { cont ->
-            val pc = peerConnection ?: return@suspendCancellableCoroutine cont.resume(null) {}
+            val pc = peerConnection ?: return@suspendCancellableCoroutine cont.resume(null)
             val sdpObserver = object : SdpObserver {
                 override fun onCreateSuccess(sdp: SessionDescription) {
                     pc.setLocalDescription(object : SdpObserver {
                         override fun onSetSuccess() {
                             // Wait for ICE gathering to complete
                             waitForIceGatheringComplete(pc) {
-                                cont.resume(pc.localDescription) {}
+                                cont.resume(pc.localDescription)
                             }
                         }
-                        override fun onSetFailure(p0: String?) { cont.resume(null) {} }
+                        override fun onSetFailure(p0: String?) { cont.resume(null) }
                         override fun onCreateSuccess(p0: SessionDescription?) {}
-                        override fun onCreateFailure(p0: String?) { cont.resume(null) {} }
+                        override fun onCreateFailure(p0: String?) { cont.resume(null) }
                     }, sdp)
                 }
-                override fun onCreateFailure(error: String?) { cont.resume(null) {} }
+                override fun onCreateFailure(error: String?) { cont.resume(null) }
                 override fun onSetSuccess() {}
                 override fun onSetFailure(p0: String?) {}
             }
@@ -107,7 +94,7 @@ class PhantomPeerManager(
             onComplete()
             return
         }
-        
+
         // Simple polling approach without recursion
         val handler = android.os.Handler(android.os.Looper.getMainLooper())
         val checkComplete = object : Runnable {

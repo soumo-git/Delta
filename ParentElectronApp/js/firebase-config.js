@@ -1,16 +1,16 @@
 // Firebase Configuration and Initialization
 console.log("✅ firebase-config.js loaded");
 
-// Firebase Config (replace with your own Firebase project settings)
+// Firebase Config
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  databaseURL: "YOUR_RTDATABASE_URL",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID",
-  measurementId: "YOUR_MEASUREMENT_ID"
+  apiKey: "USE YOUR OWN FIREBASE API KEY",
+  authDomain: "USE YOUR OWN FIREBASE AUTH DOMAIN",
+  databaseURL: "USE YOUR OWN FIREBASE REALTIME DATABASE URL",
+  projectId: "USE YOUR OWN FIREBASE PROJECT ID",
+  storageBucket: "USE YOUR OWN FIREBASE STORAGE BUCKET",
+  messagingSenderId: "USE YOUR OWN FIREBASE MESSAGING SENDER ID",
+  appId: "USE YOUR OWN FIREBASE APP ID",
+  measurementId: "USE YOUR OWN FIREBASE MEASUREMENT ID"
 };
 
 // Initialize Firebase

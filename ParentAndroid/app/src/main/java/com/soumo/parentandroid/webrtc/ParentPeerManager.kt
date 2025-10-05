@@ -35,113 +35,142 @@ import org.webrtc.VideoTrack
  * - Exposes connection state and DataChannel
  * - No trickle ICE candidates are exchanged
  */
-class ParentPeerManager(
-    private val context: Context,
-    private val externalScope: CoroutineScope
+class ParentPeerManager( // Caller provides CoroutineScope for async ops
+    private val context: Context, // Application or Activity context
+    private val externalScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
 ) {
-    sealed class ConnectionState {
-        data object Idle : ConnectionState()
-        data object Connecting : ConnectionState()
-        data object Connected : ConnectionState()
-        data class Failed(val reason: String?) : ConnectionState()
-        data object Closed : ConnectionState()
+    sealed class ConnectionState { // Observability of connection state
+        data object Idle : ConnectionState() // Before start()
+        data object Connecting : ConnectionState() // After start(), before CONNECTED/FAILED/CLOSED
+        data object Connected : ConnectionState() // PeerConnection connected, DataChannel may be open
+        data class Failed(val reason: String?) : ConnectionState() // Fatal error, must recreate PeerConnection
+        data object Closed : ConnectionState() // Closed by us or remote, can recreate PeerConnection
     }
 
-    private val logTag = "ParentPeerManager"
+    private val logTag = "ParentPeerManager" // For logging
 
-    private var peerConnectionFactory: PeerConnectionFactory? = null
-    private var peerConnection: PeerConnection? = null
-    private var eglBase: EglBase? = null
+    private var peerConnectionFactory: PeerConnectionFactory? = null // WebRTC factory
+    private var peerConnection: PeerConnection? = null // Active PeerConnection
+    private var eglBase: EglBase? = null // For video rendering if needed
 
-    private var firebaseJob: Job? = null
+    private var firebaseJob: Job? = null // For Firebase listener coroutine
 
-    private var offerPathListenerAttachedForId: String? = null
-    private var currentChildId: String? = null
+    private var offerPathListenerAttachedForId: String? = null // To prevent duplicate listeners
+    private var currentChildId: String? = null // Current child ID being handled
 
-    // DataChannel provided by child (offerer)
-    private var dataChannel: DataChannel? = null
+    // DataChannel provided by child (offerer) via onDataChannel callback after connection
+    private var dataChannel: DataChannel? = null // Null when not open
 
-    // Observability
-    private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Idle)
-    val connectionState: StateFlow<ConnectionState> = _connectionState
+    // Observability of connection state
+    private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Idle) // Initial state
+    val connectionState: StateFlow<ConnectionState> = _connectionState // Expose as read-only
 
-    private val _dataChannelEvents = MutableSharedFlow<String>(
-        extraBufferCapacity = 1024,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    private val _dataChannelEvents = MutableSharedFlow<String>( // Incoming messages from child
+        replay = 0, // No replay; only new messages
+        extraBufferCapacity = 1024, // Buffer up to 1024 messages
+        onBufferOverflow = BufferOverflow.DROP_OLDEST // Drop oldest if overflow (shouldn't happen
     )
-    val dataChannelEvents: SharedFlow<String> = _dataChannelEvents
+    val dataChannelEvents: SharedFlow<String> = _dataChannelEvents // Expose as read-only
 
-    // Inbound audio level (0.0 – 1.0). Updated from WebRTC stats.
-    private val _inboundAudioLevel = MutableStateFlow(0f)
-    val inboundAudioLevel: StateFlow<Float>
-        get() = _inboundAudioLevel
+    // Inbound audio level (0.0 – 1.0). Updated from WebRTC stats. 0 if no audio.
+    private val _inboundAudioLevel = MutableStateFlow(0f) // Initial level
+    val inboundAudioLevel: StateFlow<Float> // Expose as read-only
+        get() = _inboundAudioLevel // Getter
 
-    private var statsPollingJob: Job? = null
+    private var statsPollingJob: Job? = null // For periodic stats polling
 
     // Streams (camera/screen/mic) can be surfaced later through callbacks if needed
-    private val _remoteVideoTrack = MutableStateFlow<VideoTrack?>(null)
-    val remoteVideoTrack: StateFlow<VideoTrack?>
-        get() = _remoteVideoTrack
+    private val _remoteVideoTrack = MutableStateFlow<VideoTrack?>(null) // Remote video track if any
+    val remoteVideoTrack: StateFlow<VideoTrack?> // Expose as read-only
+        get() = _remoteVideoTrack // Getter
 
-    fun eglContext(): EglBase.Context? = eglBase?.eglBaseContext
+    fun eglContext(): EglBase.Context? = eglBase?.eglBaseContext // Expose EGL context if needed
 
-    fun initializePeerConnectionFactory() {
-        if (peerConnectionFactory != null) return
+    fun initializePeerConnectionFactory() { // Call once before creating PeerConnection
+        if (peerConnectionFactory != null) return // Already initialized
 
-        eglBase = EglBase.create()
+        eglBase = EglBase.create() // Create EGL context for video if needed
 
-        val initOptions = PeerConnectionFactory.InitializationOptions
-            .builder(context)
-            .createInitializationOptions()
-        PeerConnectionFactory.initialize(initOptions)
+        val initOptions = PeerConnectionFactory.InitializationOptions // Init WebRTC
+            .builder(context) // Application context
+            .createInitializationOptions() // Build options
+        PeerConnectionFactory.initialize(initOptions) // Initialize WebRTC
 
-        val encoderFactory = DefaultVideoEncoderFactory(eglBase!!.eglBaseContext, true, true)
-        val decoderFactory = DefaultVideoDecoderFactory(eglBase!!.eglBaseContext)
+        val encoderFactory = DefaultVideoEncoderFactory(eglBase!!.eglBaseContext, true, true) // Enable hardware acceleration
+        val decoderFactory = DefaultVideoDecoderFactory(eglBase!!.eglBaseContext) // Decoder factory for video decoding
 
-        peerConnectionFactory = PeerConnectionFactory.builder()
-            .setVideoEncoderFactory(encoderFactory)
-            .setVideoDecoderFactory(decoderFactory)
-            .createPeerConnectionFactory()
+        peerConnectionFactory = PeerConnectionFactory.builder() // Build factory
+            .setVideoEncoderFactory(encoderFactory) // Set encoder factory
+            .setVideoDecoderFactory(decoderFactory) // Set decoder factory
+            .setOptions(PeerConnectionFactory.Options().apply {
+                // Enable/disable options as needed
+                // E.g., disable encryption (not recommended for production)
+                // disableEncryption = true
+                // Enable/disable network monitoring
+                disableNetworkMonitor = false
+            })
+            .createPeerConnectionFactory() // Create factory
         Log.d(logTag, "PeerConnectionFactory initialized")
     }
 
-    fun createPeerConnection(): PeerConnection? {
-        val factory = peerConnectionFactory ?: return null
-        val rtcConfig = PeerConnection.RTCConfiguration(
+    fun createPeerConnection(): PeerConnection? { // Call to create or recreate PeerConnection
+        if (peerConnectionFactory == null) {
+            Log.e(logTag, "PeerConnectionFactory not initialized")
+            return null
+        }
+        if (peerConnection != null) {
+            Log.d(logTag, "PeerConnection already exists")
+            return peerConnection // Already exists
+        }
+        val factory = peerConnectionFactory ?: return null // Shouldn't be null here
+        val rtcConfig = PeerConnection.RTCConfiguration( // ICE servers
             AppConf.STUN_SERVERS.map { stun -> PeerConnection.IceServer.builder(stun).createIceServer() }
         )
-        peerConnection = factory.createPeerConnection(rtcConfig, object : PeerConnection.Observer {
-            override fun onIceCandidate(c: IceCandidate) { /* Non-trickle: ignore */ }
-            override fun onIceCandidatesRemoved(c: Array<out IceCandidate>?) {}
-            override fun onSignalingChange(s: PeerConnection.SignalingState?) {}
-            override fun onIceConnectionChange(s: PeerConnection.IceConnectionState?) {
-                Log.d(logTag, "ICE state: $s")
+        peerConnection = factory.createPeerConnection(rtcConfig, object : PeerConnection.Observer { // PeerConnection callbacks
+            override fun onIceCandidate(c: IceCandidate) { /* Non-trickle: ignore */ } // No trickle ICE
+            override fun onIceCandidatesRemoved(c: Array<out IceCandidate>?) {} // Not used
+            override fun onSignalingChange(s: PeerConnection.SignalingState?) {} // Not used
+            override fun onIceConnectionChange(s: PeerConnection.IceConnectionState?) { // ICE connection state changes
+                Log.d(logTag, "ICE state: $s") // Log state
             }
-            override fun onIceConnectionReceivingChange(b: Boolean) {}
-            override fun onIceGatheringChange(s: PeerConnection.IceGatheringState?) {
-                Log.d(logTag, "ICE gathering: $s")
+            override fun onIceConnectionReceivingChange(b: Boolean) {} // Not used
+            override fun onIceGatheringChange(s: PeerConnection.IceGatheringState?) { // ICE gathering state changes
+                Log.d(logTag, "ICE gathering: $s") // Log state
             }
-            override fun onAddStream(ms: org.webrtc.MediaStream?) {}
-            override fun onRemoveStream(ms: org.webrtc.MediaStream?) {}
-            override fun onDataChannel(channel: DataChannel) {
-                dataChannel = channel
-                Log.d(logTag, "DataChannel received: ${channel.label()}")
-                channel.registerObserver(object : DataChannel.Observer {
-                    override fun onStateChange() {
-                        Log.d(logTag, "DataChannel state: ${channel.state()}")
-                        if (channel.state() == DataChannel.State.CLOSED) {
-                            dataChannel = null
+            override fun onAddStream(ms: org.webrtc.MediaStream?) {} // Deprecated
+            override fun onRemoveStream(ms: org.webrtc.MediaStream?) {} // Deprecated
+            override fun onDataChannel(channel: DataChannel) { // DataChannel created by child
+                if (dataChannel != null) {
+                    Log.w(logTag, "DataChannel already exists; replacing")
+                    try { dataChannel?.close() } catch (_: Throwable) {}
+                    dataChannel = null
+                }
+                dataChannel = channel // Store reference
+                Log.d(logTag, "DataChannel received: ${channel.label()}") // Log label
+                // Set up DataChannel observer for messages and state changes
+                channel.registerObserver(object : DataChannel.Observer { // DataChannel events
+                    override fun onStateChange() { // State changes
+                        Log.d(logTag, "DataChannel state: ${channel.state()}") // Log state
+                        // Clear reference if closed
+                        if (channel.state() == DataChannel.State.CLOSED) { // Closed
+                            Log.d(logTag, "DataChannel closed") // Log closure
+                            dataChannel = null // Clear reference
                         }
                     }
-                    override fun onMessage(buffer: DataChannel.Buffer?) {
-                        if (buffer == null) return
+                    override fun onMessage(buffer: DataChannel.Buffer?) { // Message received
+                        if (buffer == null) return // Null check
+                        if (!buffer.binary) { // We expect text messages only
+                            Log.w(logTag, "Ignoring binary message on DataChannel") // Warn
+                            return
+                        }
                         // Copy remaining bytes into a fresh array BEFORE reading strings
-                        val remaining = buffer.data.remaining()
-                        if (remaining <= 0) return
-                        val bytes = ByteArray(remaining)
-                        buffer.data.get(bytes)
+                        val remaining = buffer.data.remaining() // Remaining bytes
+                        if (remaining <= 0) return // No data
+                        val bytes = ByteArray(remaining) // Allocate array
+                        buffer.data.get(bytes) // Copy bytes
+                        // Decode UTF-8 string safely
                         val text = try {
-                            String(bytes, Charsets.UTF_8)
+                            String(bytes, Charsets.UTF_8) // Decode string
                         } catch (_: Throwable) {
                             return
                         }
@@ -384,7 +413,7 @@ class ParentPeerManager(
             while (true) {
                 try {
                     // Collect stats and extract inbound audio level when available
-                    kotlinx.coroutines.suspendCancellableCoroutine<Unit> { cont ->
+                    kotlinx.coroutines.suspendCancellableCoroutine { cont ->
                         pc.getStats { report: RTCStatsReport ->
                             try {
                                 var level: Float? = null

@@ -2,16 +2,14 @@ package com.soumo.parentandroid
 
 object AppConf {
     // 🔹 Backend API (match Electron app)
-    // Replace with your own hosted email/OTP service endpoint
-    const val RENDER_API_URL = "YOUR_EMAIL_SERVICE_URL"
+    const val RENDER_API_URL = "USE YOUR OWN RENDER API URL"
 
     // 🔹 Firebase
-    // Realtime Database root URL (e.g., https://<project-id>-default-rtdb.<region>.firebasedatabase.app/)
-    const val FIREBASE_DB_URL = "YOUR_RTDATABASE_URL"
+    const val FIREBASE_DB_URL = "USE YOUR OWN FIREBASE DATABASE URL"
     const val FIREBASE_OTP_PATH = "otp"
     const val FIREBASE_CALLS_PATH = "calls"
 
-    // 🔹 WebRTC (align with common Chromium defaults used by Electron)
+    // 🔹 WebRTC
     val STUN_SERVERS = listOf(
         "stun:stun.l.google.com:19302",
         "stun:stun1.l.google.com:19302",
@@ -19,11 +17,6 @@ object AppConf {
         "stun:stun3.l.google.com:19302",
         "stun:stun4.l.google.com:19302"
     )
-
-    // 🔹 Commands
-    const val CMD_CHECK_PERMISSIONS = "CHECK_PERMISSIONS"
-    const val CMD_REQUEST_ALL_PERMISSIONS = "REQUEST_ALL_PERMISSIONS"
-    const val CMD_SHOW_PERMISSION_DIALOG = "SHOW_PERMISSION_DIALOG" // usage: SHOW_PERMISSION_DIALOG:<Feature>
 
     const val CMD_SMS_ON = "SMS_ON"
     const val CMD_SMS_OFF = "SMS_OFF"
@@ -47,11 +40,6 @@ object AppConf {
     const val CMD_STEALTH_ON = "STEALTH_ON"
     const val CMD_STEALTH_OFF = "STEALTH_OFF"
 
-    // 🔹 Responses from Child
-    const val RSP_ALL_PERMISSIONS_REQUESTED = "ALL_PERMISSIONS_REQUESTED"
-    const val RSP_PERMISSION_DIALOG_SHOWN = "PERMISSION_DIALOG_SHOWN"
-    const val RSP_PERMISSION_STATUS_PREFIX = "PERMISSION_STATUS:" // e.g., PERMISSION_STATUS:granted/denied
-
     const val RSP_SMS_STARTED = "SMS_STARTED"
     const val RSP_SMS_STOPPED = "SMS_STOPPED"
     const val RSP_SMS_ERROR_PREFIX = "SMS_ERROR:"
@@ -64,7 +52,6 @@ object AppConf {
 
     const val RSP_CAMERA_STARTED = "CAMERA_STARTED"
     const val RSP_CAMERA_STOPPED = "CAMERA_STOPPED"
-    const val RSP_CAMERA_SWITCHED = "CAMERA_SWITCHED"
     const val RSP_CAMERA_ERROR_PREFIX = "CAMERA_ERROR:"
     const val RSP_CAMERA_PERMISSION_REQUESTED = "CAMERA_PERMISSION_REQUESTED"
 
@@ -85,11 +72,6 @@ object AppConf {
 
     const val RSP_STEALTH_ON_ACK = "STEALTH_ON_ACK"
     const val RSP_STEALTH_OFF_ACK = "STEALTH_OFF_ACK"
-
-    const val RSP_UNKNOWN_COMMAND_PREFIX = "UNKNOWN_COMMAND:"
-    const val RSP_COMMAND_ERROR_PREFIX = "COMMAND_ERROR:"
-    const val RSP_PING_CHILD = "PING_CHILD"
-    const val RSP_PONG_CHILD = "PONG_CHILD"
 
     // JSON message types
     const val TYPE_LOCATION_UPDATE = "LOCATION_UPDATE"

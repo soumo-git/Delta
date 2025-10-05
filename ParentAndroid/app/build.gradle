@@ -9,11 +9,13 @@ apply plugin: 'com.google.gms.google-services'
 
 android {
     namespace 'com.soumo.parentandroid'
-    compileSdk 35
+    //noinspection GrDeprecatedAPIUsage
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.soumo.parentandroid"
         minSdk 28
+        //noinspection OldTargetApi
         targetSdk 35
         versionCode 1
         versionName "1.0"

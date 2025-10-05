@@ -4,7 +4,6 @@ import android.util.Log
 import com.soumo.parentandroid.webrtc.ParentPeerManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -34,14 +33,6 @@ class CommandHandler(
         eventsJob?.cancel()
         eventsJob = null
     }
-
-    // Basic ping
-    fun pingChild(): Boolean = peer.sendCommand(AppConf.RSP_PING_CHILD)
-
-    // Permissions
-    fun checkPermissions(): Boolean = peer.sendCommand(AppConf.CMD_CHECK_PERMISSIONS)
-    fun requestAllPermissions(): Boolean = peer.sendCommand(AppConf.CMD_REQUEST_ALL_PERMISSIONS)
-    fun showPermissionDialog(feature: String): Boolean = peer.sendCommand("${AppConf.CMD_SHOW_PERMISSION_DIALOG}:$feature")
 
     // SMS
     fun smsOn(): Boolean = peer.sendCommand(AppConf.CMD_SMS_ON)

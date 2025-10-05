@@ -2,11 +2,17 @@ package com.soumo.child.utils
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
+import androidx.core.net.toUri
+
+/** Helper object to manage battery optimization and auto-start settings.
+ * This includes checking if the app is ignoring battery optimizations,
+ * requesting to disable battery optimizations, and opening relevant settings screens.
+ * It also provides manufacturer-specific instructions for enabling auto-start.
+ */
 
 object BatteryOptimizationHelper {
     
@@ -19,7 +25,7 @@ object BatteryOptimizationHelper {
     fun requestDisableBatteryOptimization(context: Context) {
         try {
             val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                data = Uri.parse("package:${context.packageName}")
+                data = "package:${context.packageName}".toUri()
             }
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
@@ -67,14 +73,14 @@ object BatteryOptimizationHelper {
                     context.startActivity(intent)
                     Log.d("AutoStart", "Opened auto-start settings for manufacturer")
                     return
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     Log.d("AutoStart", "Failed to open auto-start settings for this manufacturer")
                 }
             }
             
             // Fallback to general app settings
             val generalIntent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.parse("package:${context.packageName}")
+                data = "package:${context.packageName}".toUri()
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(generalIntent)

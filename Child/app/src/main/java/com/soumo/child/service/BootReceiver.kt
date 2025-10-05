@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import com.soumo.child.BackgroundService
 
 class BootReceiver : BroadcastReceiver() {
     
@@ -31,7 +32,7 @@ class BootReceiver : BroadcastReceiver() {
             Log.d("BootReceiver", "BackgroundService started immediately")
             
             // Schedule persistent job for Android 8+
-            com.soumo.child.PersistentJobService.scheduleJob(context)
+            PersistentJobService.scheduleJob(context)
             Log.d("BootReceiver", "PersistentJobService scheduled")
 
         } catch (e: Exception) {

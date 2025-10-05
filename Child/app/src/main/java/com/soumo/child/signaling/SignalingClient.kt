@@ -1,7 +1,11 @@
 package com.soumo.child.signaling
 
-import com.google.firebase.database.*
-import org.webrtc.IceCandidate
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.GenericTypeIndicator
+import com.google.firebase.database.ValueEventListener
+import com.soumo.child.configuration.AppConfig
 import org.webrtc.SessionDescription
 
 enum class PeerRole { OFFERER, ANSWERER }
@@ -17,32 +21,26 @@ class SignalingClient(
     roomId: String,
     role: PeerRole,
     private val onOfferReceived:  (SessionDescription) -> Unit,
-    private val onAnswerReceived: (SessionDescription) -> Unit,
-    private val onIceCandidate:   (IceCandidate)       -> Unit
+    private val onAnswerReceived: (SessionDescription) -> Unit
 ) {
-    // Use your regional RTDB URL
     private val db = FirebaseDatabase
         .getInstance(AppConfig.Firebase.DATABASE_URL)
-        .reference.child(AppConfig.Firebase.CALLS_PATH).child(roomId)
+        .reference.child("calls").child(roomId)
     
     private var offerListener: ValueEventListener? = null
     private var answerListener: ValueEventListener? = null
-    private var iceListener: ChildEventListener? = null
 
     init {
         if (role == PeerRole.ANSWERER) listenForOffer()    // answerer waits for offer
         if (role == PeerRole.OFFERER)  listenForAnswer()   // offerer waits for answer
-        // listenForIce() // ICE candidate listening is disabled for Non-Trickle ICE
     }
 
     /* ─── send helpers ─────────────────────────────── */
     fun sendOffer(sdp: SessionDescription) {
-        println("🔍 Sending offer to Firebase path: calls/${db.key}")
+        println("🔍 Sending offer to Firebase. path: calls/${db.key}")
         db.child("offer").setValue(sdp.serialize())
     }
     fun sendAnswer(sdp: SessionDescription) = db.child("answer").setValue(sdp.serialize())
-    // fun sendIceCandidate(c: IceCandidate)   = db.child("candidates").push().setValue(c.serialize())
-    // ICE candidate sending is disabled for Non-Trickle ICE
 
     /* ─── receive helpers ──────────────────────────── */
     private fun listenForOffer() {
@@ -55,7 +53,7 @@ class SignalingClient(
                 println("🔍 Firebase offer listener cancelled: ${e.message}")
             }
         }
-        db.child("offer").addValueEventListener(offerListener!!)
+        offerListener?.let { db.child("offer").addValueEventListener(it) }
     }
 
     private fun listenForAnswer() {
@@ -68,26 +66,19 @@ class SignalingClient(
                 println("🔍 Firebase answer listener cancelled: ${e.message}")
             }
         }
-        db.child("answer").addValueEventListener(answerListener!!)
+        answerListener?.let { db.child("answer").addValueEventListener(it) }
     }
 
-    // listenForIce function removed for Non-Trickle ICE
-    
+
     /* ─── cleanup ──────────────────────────────────── */
     fun cleanup() {
         try {
             offerListener?.let { db.child("offer").removeEventListener(it) }
             answerListener?.let { db.child("answer").removeEventListener(it) }
-            // iceListener removed for Non-Trickle ICE
-            
             offerListener = null
             answerListener = null
-            // iceListener = null
-            
             // Clean up Firebase data
             db.removeValue()
-        } catch (_: Exception) {
-            // Log error but don't throw
-        }
+        } catch (_: Exception) { /** ignore */}
     }
 }

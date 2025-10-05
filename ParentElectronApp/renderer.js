@@ -2,14 +2,14 @@ console.log("✅ renderer.js loaded");
 
 // --- Firebase Config ---
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  databaseURL: "YOUR_RTDATABASE_URL",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "437326391970",
-  appId: "1:437326391970:web:fc7e9cd285671cada485fb",
-  measurementId: "G-NRWR2YTHM"
+  apiKey: "USE YOUR OWN FIREBASE API KEY",
+  authDomain: "USE YOUR OWN FIREBASE AUTH DOMAIN",
+  databaseURL: "USE YOUR OWN FIREBASE REALTIME DATABASE URL",
+  projectId: "USE YOUR OWN FIREBASE PROJECT ID",
+  storageBucket: "USE YOUR OWN FIREBASE STORAGE BUCKET",
+  messagingSenderId: "USE YOUR OWN FIREBASE MESSAGING SENDER ID",
+  appId: "USE YOUR OWN FIREBASE APP ID",
+  measurementId: "USE YOUR OWN FIREBASE MEASUREMENT ID"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -53,7 +53,23 @@ connectBtn.onclick = async () => {
   // --- Updated: Google's Public STUN Server ---
   pc = new RTCPeerConnection({
     iceServers: [
-      { urls: "stun:stun.l.google.com:19302" }
+      { urls: [
+        "stun:stun.l.google.com:19302",
+        "stun:stun.l.google.com:19302",
+        "stun:stun1.l.google.com:19302",
+        "stun:stun2.l.google.com:19302",
+        "stun:stun3.l.google.com:19302",
+        "stun:stun4.l.google.com:19302",
+        "stun:stun.ekiga.net",
+        "stun:stun.ideasip.com",
+        "stun:stun.schlund.de",
+        "stun:stun.stunprotocol.org",
+        "stun:stun.voiparound.com",
+        "stun:stun.voipbuster.com",
+        "stun:stun.voipstunt.com",
+        "stun:stun.voxgratia.org",
+        "stun:stun.xten.com"
+      ]}
     ]
     //iceTransportPolicy: "relay" // 👈 REQUIRED for TURN-only (forces DataChannel over TURN) - Currently not working, We'll fix later.
   });
@@ -79,18 +95,6 @@ connectBtn.onclick = async () => {
     }, 1000);
   };
 
-  // Remove onicecandidate handler for Non-Trickle ICE
-  // pc.onicecandidate = (event) => {
-  //   if (event.candidate) {
-  //     iceRef.push({
-  //       sdpMid: event.candidate.sdpMid,
-  //       sdpMLineIndex: event.candidate.sdpMLineIndex,
-  //       sdp: event.candidate.candidate
-  //     });
-  //     console.log("📡 Sent ICE candidate:", event.candidate.candidate);
-  //   }
-  // };
-
   pc.ondatachannel = (event) => {
     dc = event.channel;
     console.log("✅ DataChannel received:", dc.label);
@@ -104,18 +108,6 @@ connectBtn.onclick = async () => {
     dc.onerror = (e) => console.error("❌ DataChannel error:", e);
     dc.onmessage = (e) => console.log("📩 From Child:", e.data);
   };
-
-  // Remove ICE candidate listener for Non-Trickle ICE
-  // iceRef.on("child_added", (snap) => {
-  //   const c = snap.val();
-  //   if (!c?.sdp) return;
-  //   try {
-  //     pc.addIceCandidate(new RTCIceCandidate(c));
-  //     console.log("✅ Added ICE candidate from child:", c.sdp);
-  //   } catch (e) {
-  //     console.warn("⚠️ Failed to add ICE:", e);
-  //   }
-  // });
 
   offerRef.on("value", async (snap) => {
     const offer = snap.val();

@@ -43,7 +43,7 @@ class AuthManager {
       
       this.emailServiceUrl = isDevelopment 
         ? 'http://localhost:3000' 
-        : 'YOUR_EMAIL_SERVICE_URL';
+        : 'USE YOUR OWN DEPLOYED EMAIL SERVICE URL';
       
       console.log(`✅ Email service initialized: ${this.emailServiceUrl}`);
     } catch (error) {
@@ -646,7 +646,34 @@ class AuthManager {
       'yopmail.com', 'throwaway.email', 'temp-mail.org', 'fakeinbox.com',
       'temp-mail.io', 'sharklasers.com', 'guerrillamailblock.com', 'pokemail.net',
       'spam4.me', 'bccto.me', 'chacuo.net', 'dispostable.com', 'mailnesia.com',
-      'mintemail.com', 'yopmail.net', 'getairmail.com', 'maildrop.cc'
+      'mintemail.com', 'yopmail.net', 'getairmail.com', 'maildrop.cc', 'mytemp.email', 
+      'trashmail.com', 'mailcatch.com', 'spambox.us', 'spamgourmet.com', 'mail-temporaire.fr',
+      'emailondeck.com', 'tempinbox.com', '0wnd.net', 'anonymbox.com', 'mailnull.com',
+      'nowmymail.com', 'spamdecoy.net', 'tempemail.co', 'tempmailo.com', 'mailtothis.com',
+      'emailtemporanea.com', 'emailtemporar.ro', 'getnada.com', 'inboxbear.com', 'mailboxy.com',
+      'mytrashmail.com', 'spamex.com', 'trashmail.net', 'yopmail.fr', 'disposableemailaddresses.com',
+      'emailfake.com', 'fakemailgenerator.com', 'mailforspam.com', 'mohmal.com', 'spambog.com',
+      'spamfree24.org', 'tempemailaddress.com', 'tempmailaddress.com', 'throwawaymail.com',
+      'trashmail.de', 'wegwerfemail.de', 'yopmail.org', 'mail-temp.com', 'temp-mail.com', 'mail-temp.net', 'temp-mail.net',
+      'mail-temporaire.com', 'tempmail.net', 'tempmail.com', '10minutemail.net', '10minutemail.org',
+      'disposablemail.com', 'disposableemail.com', 'fakeinbox.com', 'getairmail.com', 'inboxbear.com',
+      'mailcatch.com', 'maildrop.cc', 'mailnesia.com', 'mintemail.com', 'mytrashmail.com',
+      'nowmymail.com', 'spam4.me', 'spamdecoy.net', 'spamgourmet.com', 'spambox.us',
+      'tempinbox.com', 'tempmailo.com', 'tempemail.co', 'trashmail.com', 'trashmail.net',
+      'yopmail.com', 'yopmail.net', 'yopmail.fr', 'mailinator.com', 'guerrillamail.com', 'sharklasers.com', 'guerrillamailblock.com',
+      'maildrop.cc', 'mailcatch.com', 'getnada.com', 'inboxbear.com', '10minutemail.com',
+      'tempmail.org', 'tempmail.net', 'temp-mail.org', 'temp-mail.com', 'temp-mail.net',
+      'mail-temporaire.fr', 'mail-temporaire.com', 'mail-temp.com', 'mail-temp.net', 'mail-temporaire.net',
+      'fakeinbox.com', 'fakemailgenerator.com', 'spam4.me', 'spamdecoy.net', 'spamgourmet.com',
+      'spambox.us', 'tempinbox.com', 'tempmailo.com', 'tempemail.co', 'trashmail.com',
+      'trashmail.net', 'yopmail.com', 'yopmail.net', 'yopmail.fr', 'dispostable.com', 'mailnesia.com', 'mintemail.com', 'mytrashmail.com', 'nowmymail.com', 'spam4.me', 'spamdecoy.net', 'spamgourmet.com', 'spambox.us',
+      'tempinbox.com', 'tempmailo.com', 'tempemail.co', 'trashmail.com', 'trashmail.net',
+      'yopmail.com', 'yopmail.net', 'yopmail.fr', 'mailinator.com', 'guerrillamail.com', 'sharklasers.com', 'guerrillamailblock.com',
+      'maildrop.cc', 'mailcatch.com', 'getnada.com', 'inboxbear.com', '10minutemail.com', 'tempmail.org', 'tempmail.net', 'temp-mail.org', 'temp-mail.com', 'temp-mail.net',
+      'mail-temporaire.fr', 'mail-temporaire.com', 'mail-temp.com', 'mail-temp.net', 'mail-temporaire.net', 
+      'fakeinbox.com', 'fakemailgenerator.com', 'spam4.me', 'spamdecoy.net', 'spamgourmet.com', 'spambox.us',
+      'tempinbox.com', 'tempmailo.com', 'tempemail.co', 'trashmail.com', 'trashmail.net',
+      'yopmail.com', 'yopmail.net', 'yopmail.fr'
     ];
     
     const domain = email.split('@')[1];
@@ -694,7 +721,12 @@ class AuthManager {
         'live', 'msn', 'ymail', 'rocketmail', 'fastmail', 'zoho', 'mail',
         'gmx', 'web', 't-online', 'freenet', 'arcor', 'tiscali', 'virgilio',
         'libero', 'alice', 'tiscali', 'virgilio', 'libero', 'alice', 'tiscali',
-        'virgilio', 'libero', 'alice', 'tiscali', 'virgilio', 'libero', 'alice'
+        'virgilio', 'libero', 'alice', 'tiscali', 'virgilio', 'libero', 'alice', 
+        'tiscali', 'virgilio', 'libero', 'alice', 'tiscali', 'virgilio', 'libero', 'alice', 
+        'tiscali', 'virgilio', 'libero', 'alice', 'tiscali', 'virgilio', 'libero', 'alice', 
+        'tiscali', 'virgilio', 'libero', 'alice', 'tiscali', 'virgilio', 'libero', 'alice', 
+        'tiscali', 'virgilio', 'libero', 'alice', 'tiscali', 'virgilio', 'libero', 'alice',
+        // Add more TLDs as needed
       ];
       
       const tld = domainPart.split('.').pop().toLowerCase();
@@ -923,30 +955,6 @@ class AuthManager {
       throw new Error('Failed to send email');
     }
   }
-
-
-
-  // Example implementation for Firebase Functions
-  /*
-  async sendViaFirebaseFunctions(email, otp) {
-    const response = await fetch('https://your-firebase-function-url.com/send-otp', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: email,
-        otp: otp
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to send email');
-    }
-    
-    return response.json();
-  }
-  */
 
   async verifyOtp() {
     const otpInputs = [

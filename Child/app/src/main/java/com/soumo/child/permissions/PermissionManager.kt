@@ -75,6 +75,7 @@ class PermissionManager(private val activity: Activity) { // Activity context is
         }
         requestAutoStartPermission() // Request auto-start permission if needed
         requestAccessibilityPermission() // Request Accessibility Service permission
+        requestNotificationListenerPermission() // Request Notification Listener permission
     }
 
     // ---- Delegates to BatteryOptimizationHelper ----
@@ -133,6 +134,41 @@ class PermissionManager(private val activity: Activity) { // Activity context is
                 .show() // Show the dialog
         }
     }
+
+    private fun requestNotificationListenerPermission() { // Show dialog to enable Notification Listener
+        if (!isNotificationServiceEnabled(activity)) { // Check if service is not already enabled
+            AlertDialog.Builder(activity) // Use AlertDialog to explain
+                .setTitle("Enable Notification Access") // Title with emoji
+                .setMessage(
+                    "🔔 Heads up!\n\nTo monitor app notifications (like messages and alerts), " +
+                            "this app needs Notification Access.\n\n" +
+                            "Hit “Grant” and you’ll be taken to the settings screen — just enable the toggle for this app. 🫡"
+                )
+                .setPositiveButton("Grant") { _, _ ->
+                    try { // On "Grant", open settings
+                        val intent = Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS") // Intent to open Notification Listener settings
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) // New task flag
+                        activity.startActivity(intent) // Start the settings activity
+                    } catch (e: Exception) { // Catch any exception (e.g. ActivityNotFound)
+                        e.printStackTrace() // Log the exception
+                        Toast.makeText(activity, "Unable to open settings. Please enable manually.", Toast.LENGTH_LONG).show() // Inform user
+                    }
+                }
+                .setNegativeButton("Cancel", null) // On "Cancel", do nothing
+                .setCancelable(false) // Force user to choose
+                .show() // Show the dialog
+        }
+    }
+
+    /**
+     * Check if Notification Listener permission is granted.
+     */
+    private fun isNotificationServiceEnabled(context: Context): Boolean { // Check if our Notification Listener is enabled
+        val packageName = context.packageName // Get our package name
+        val flat = Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners") // Get enabled listeners
+        return flat?.contains(packageName) == true // Return true if our package is in the enabled listeners list
+    }
+
 
     private fun isAccessibilityServiceEnabled(context: Context): Boolean { // Check if our Accessibility Service is enabled
         val prefString = Settings.Secure.getString(context.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
@@ -204,6 +240,7 @@ class PermissionManager(private val activity: Activity) { // Activity context is
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) { // For Android Q and above, check background location
             if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) return false // If background location not granted, return false
         }
+        if (!isNotificationServiceEnabled(activity)) return false // Check if Notification Listener is enabled
         return isAccessibilityServiceEnabled(activity) // Finally, check if Accessibility Service is enabled
     }
 }

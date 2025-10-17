@@ -8,7 +8,7 @@ object AppConfig {
 
     // Firebase Configuration
     object Firebase {
-        const val DATABASE_URL = "USE YOUR OWN FIREBASE DATABASE_URL"
+        const val DATABASE_URL = "YOUR FIREBASE_DATABASE_URL"
     }
 
     // WebRTC Configuration

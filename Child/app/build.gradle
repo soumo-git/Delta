@@ -1,9 +1,10 @@
+//file:noinspection GrDeprecatedAPIUsage
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services")
-    id 'org.jetbrains.kotlin.plugin.serialization' version '2.2.10'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '2.2.20'
 }
 apply plugin: 'com.google.gms.google-services'
 
@@ -23,8 +24,20 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            splits {
+                abi {
+                    enable true
+                    reset()
+                    //noinspection ChromeOsAbiSupport
+                    include "arm64-v8a"
+                    universalApk false
+                }
+            }
         }
     }
     compileOptions {
@@ -63,9 +76,9 @@ dependencies {
     // Firebase Realtime Database
     implementation libs.firebase.database
     // Optional: Firebase Cloud Messaging
-    implementation libs.firebase.messaging
+    //implementation libs.firebase.messaging
     // Optional: Firebase Analytics
-    implementation libs.firebase.analytics
+    //implementation libs.firebase.analytics
     //WebRTC
     implementation libs.webrtc // Google's 'org.webrtc' is not available in Maven Central
     //Play‑Services helper

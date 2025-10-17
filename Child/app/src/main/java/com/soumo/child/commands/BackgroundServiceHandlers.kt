@@ -24,8 +24,7 @@ class BackgroundServicePermissionHandler() : PermissionHandler {
 class BackgroundServiceExtendedStealthHandler(
     private val stealthActivated: AtomicBoolean,
     private val onActivate: (() -> Unit)? = null,
-    private val onDeactivate: (() -> Unit)? = null,
-    private val updateLastPongAtMs: (Long) -> Unit
+    private val onDeactivate: (() -> Unit)? = null
 ) : StealthHandler {
     override fun activateStealthMode() {
         try {
@@ -44,31 +43,6 @@ class BackgroundServiceExtendedStealthHandler(
             Log.d("BackgroundServiceExtendedStealthHandler", "Stealth mode deactivated")
         } catch (e: Exception) {
             Log.e("BackgroundServiceExtendedStealthHandler", "Failed to deactivate stealth mode", e)
-        }
-    }
-}
-
-/**
- * Location handler implementation for BackgroundService
- * Note: BackgroundService location tracking would need to be implemented differently
- */
-class BackgroundServiceLocationHandler() : LocationHandler {
-    override fun startLocationTracking() {
-        try {
-            // BackgroundService location tracking would need to be implemented
-            // This is a placeholder for the actual implementation
-            Log.d("BackgroundServiceLocationHandler", "Location tracking started (placeholder)")
-        } catch (e: Exception) {
-            Log.e("BackgroundServiceLocationHandler", "Failed to start location tracking", e)
-        }
-    }
-
-    override fun stopLocationTracking() {
-        try {
-            // BackgroundService location tracking stop would need to be implemented
-            Log.d("BackgroundServiceLocationHandler", "Location tracking stopped (placeholder)")
-        } catch (e: Exception) {
-            Log.e("BackgroundServiceLocationHandler", "Failed to stop location tracking", e)
         }
     }
 }

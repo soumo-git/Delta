@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <permission android:name="com.soumo.child.PERMISSION_CONNECTION_STATUS"
+        android:protectionLevel="signature" />
+
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />

@@ -52,4 +52,26 @@ that with enough stubbornness, curiosity, and questionable morality, you can ben
 - And creeps, you already know what to do. 🙂
 
 
-👑 Built by **Soumo** — the non-coder who pulled it off anyway. 🙌
+#### 👑 Built by **Soumo** — the non-coder who pulled it off anyway. 🙌
+
+---
+
+#### Disclaimer – Please Read Before Using
+
+These applications are intended solely for lawful and authorized monitoring. You may only install, use, or operate them: On devices you own; or on devices where you have explicit, informed consent from the user being monitored. 
+
+Unauthorized use may be illegal in your country, state, or region. 
+Installing or using these apps without proper consent may violate privacy, data protection, and wiretapping laws.
+
+Penalties can include criminal charges, fines, and imprisonment. 
+By installing or using these apps, you agree that: 
+
+- You are solely responsible for ensuring your use complies with all applicable laws. 
+- The developer(s) of these applications assume no liability for misuse, damage, or legal consequences resulting from 
+improper use. 
+- If you are unsure about the legality of using these apps in your situation, consult a qualified legal professional before 
+proceeding.
+
+---
+
+### Follow the setupguide.md and email-service/README.md to set up the app.

@@ -66,7 +66,7 @@ class LocationController(
         try {
             fusedClient.lastLocation
                 .addOnSuccessListener { loc ->
-                    loc?.let { sendLocationJson(it, source = "lastKnown") }
+                    loc?.let { sendLocationJson(it) }
                 }
                 .addOnFailureListener { e ->
                     Log.w(TAG, "Failed to get last known location", e)
@@ -85,7 +85,7 @@ class LocationController(
         val cb = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
                 try {
-                    result.lastLocation?.let { maybeSend(it, source = "update") }
+                    result.lastLocation?.let { maybeSend(it) }
                 } catch (e: Exception) {
                     Log.e(TAG, "Error handling location update", e)
                 }
@@ -121,12 +121,12 @@ class LocationController(
     }
 
     /** Send only if moved enough or sufficient time elapsed to mimic smooth real-time like maps. */
-    private fun maybeSend(location: Location, source: String) {
+    private fun maybeSend(location: Location) {
         val now = System.currentTimeMillis()
         val movedEnough = lastSentLocation?.distanceTo(location)?.let { it >= MIN_SEND_DISTANCE_METERS } ?: true
         val timeElapsed = now - lastSentAtMs >= MAX_SEND_INTERVAL_MS
         if (movedEnough || timeElapsed) {
-            sendLocationJson(location, source)
+            sendLocationJson(location)
             lastSentLocation = location
             lastSentAtMs = now
         }
@@ -135,7 +135,7 @@ class LocationController(
     /** Serialize a Location to JSON and send via DataChannel.
      * Matches ParentElectronApp schema: { type: 'LOCATION_UPDATE', coords: [lat, lng], accuracy, timestamp }
      */
-    private fun sendLocationJson(location: Location, source: String) {
+    private fun sendLocationJson(location: Location) {
         if (dataChannel.state() != DataChannel.State.OPEN) {
             Log.w(TAG, "DataChannel not open; skipping location send")
             return

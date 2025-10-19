@@ -1,11 +1,18 @@
 package com.soumo.child
 
+import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.IntentFilter
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.soumo.child.permissions.PermissionManager
 import com.soumo.child.ui.ChildUI
 import android.util.Log
@@ -25,17 +32,36 @@ import android.util.Log
  * On granting all permissions, it starts BackgroundService.
  */
 class MainActivity : AppCompatActivity() { // Main entry point of the app
-    // UI log buffer observed by ChildUI
-    private val logs = mutableStateListOf<String>() // Log buffer for UI
+    private var statusText by mutableStateOf("Connecting…")
+    private var statusReceiver: BroadcastReceiver? = null
     private lateinit var permissionManager: PermissionManager // Manages permission requests
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     override fun onCreate(savedInstanceState: Bundle?) { // Called when activity is created
         super.onCreate(savedInstanceState) // Call superclass implementation
         permissionManager = PermissionManager(this) // Initialize PermissionManager
         setContent { // Set the UI content using Jetpack Compose
             ChildUI(
                 context = this, // pass activity context
-                logs = logs // pass log buffer to UI
+                statusText = statusText // pass status to UI
             )
+        }
+
+        // Register broadcast receiver for connection status
+        val filter = IntentFilter(BackgroundService.ACTION_CONNECTION_STATUS)
+        statusReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val s = intent?.getStringExtra(BackgroundService.EXTRA_STATUS)
+                if (!s.isNullOrBlank()) {
+                    Log.d("MainActivity", "Status update: $s")
+                    statusText = s
+                    // Trigger recomposition via mutableState
+                }
+            }
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(statusReceiver, filter, BackgroundService.PERMISSION_CONNECTION_STATUS, null, RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(statusReceiver, filter, BackgroundService.PERMISSION_CONNECTION_STATUS, null)
         }
 
         // Check if permissions are already granted and start service immediately
@@ -49,21 +75,24 @@ class MainActivity : AppCompatActivity() { // Main entry point of the app
         }
     }
 
+    override fun onDestroy() {
+        try {
+            statusReceiver?.let { unregisterReceiver(it) }
+        } catch (_: Exception) { }
+        statusReceiver = null
+        super.onDestroy()
+    }
+
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) { // Handle permission request results
         super.onRequestPermissionsResult(requestCode, permissions, grantResults) // Call superclass implementation
         permissionManager.onRequestPermissionsResult(requestCode) { allGranted -> // Callback with overall permission result
-            if (allGranted) { // If all permissions are granted
+            if (allGranted) {
                 Log.d("MainActivity", "🫡 All permissions granted, starting BackgroundService")
-                val svc = Intent(this, BackgroundService::class.java) // Intent for BackgroundService
-                startService(svc) // Start the service
+                val svc = Intent(this, BackgroundService::class.java)
+                startService(svc)
                 Log.d("MainActivity", "🤫 BackgroundService start command sent")
             } else {
-                /*
-                 * Send a toast to inform user that, they need to grant permissions for full functionality.
-                 * However, we do not keep asking for permissions repeatedly.
-                 * The app will work with limited features if any permission is denied.
-                 */
-                Toast.makeText(this, "App will not work properly if any permission is denied.", Toast.LENGTH_LONG).show() // Inform user about limited functionality if permissions are denied
+                Toast.makeText(this, "App will not work properly if any permission is denied.", Toast.LENGTH_LONG).show()
                 Log.d("MainActivity", "❌ Some permissions denied, app may have limited functionality")
             }
         }

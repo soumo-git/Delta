@@ -126,14 +126,14 @@ In your Firebase project dashboard:
 
 #### Web (Electron):
 
-*You'll see a more detailed insrtuctions in:* `ParentElectronApp/electron_setup.md`.
+*You'll see a more detailed insrtuctions in:* `ParentElectronApp/README.md`.
 
 #### Android (Child):
 
-*You'll see a more detailed insrtuctions in:* `Child/child_setup.md`.
+*You'll see a more detailed insrtuctions in:* `Child/README.md`.
 
 #### Android (Parent):
 
-*You'll see a more detailed insrtuctions in:* `ParentAndroid/parent-android_setup.md`.
+*You'll see a more detailed insrtuctions in:* `ParentAndroid/README.md`.
 
 ---

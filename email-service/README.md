@@ -2,16 +2,89 @@
 
 A Node.js email service for sending OTP verification emails, deployed on Render.
 
-## 🎯 Features
+### Before you run the service, gather two things:
 
-- ✅ **OTP Email Sending** - Professional verification emails
-- ✅ **Test Email Endpoint** - Verify your setup
-- ✅ **Health Check** - Monitor service status
-- ✅ **CORS Enabled** - Works with web apps
-- ✅ **Environment Variables** - Secure configuration
-- ✅ **Professional Templates** - Beautiful email design
- 
-## 🚀 Deploy to Render
+---
+
+#### Firebase service account (lets the server talk to Firebase as an admin)
+
+1. Open the Firebase Console, pick your project, and go to `Project settings` → `Service accounts`.
+
+2. Click **Generate new private key**. A JSON file downloads to your computer.
+
+3. Open the file and copy the values into your `.env` file:
+
+   - `FIREBASE_TYPE`, 
+   - `FIREBASE_PROJECT_ID`, 
+   - `FIREBASE_PRIVATE_KEY_ID`, 
+   - `FIREBASE_CLIENT_EMAIL`, 
+   - `FIREBASE_CLIENT_ID`, 
+   - `FIREBASE_AUTH_URI`, 
+   - `FIREBASE_TOKEN_URI`, 
+   - `FIREBASE_AUTH_PROVIDER_X509_CERT_URL`, 
+   - `FIREBASE_CLIENT_X509_CERT_URL`.
+
+For `FIREBASE_PRIVATE_KEY`, keep the value in quotes and replace every real line break with `\n` so Node.js can read it.
+
+In Firebase Console, open `Build` → `Realtime Database` and copy the URL shown at the top into `FIREBASE_DATABASE_URL`.
+
+#### Gmail app password (lets the server send emails from your Gmail account)
+
+1. Sign in to the Google account you want to send emails from.
+2. Go to `Security` → **2-Step Verification** and turn it on (required for app passwords).
+3. Still under `Security`, choose **App passwords**. Pick **Mail** as the app, choose **Other**, name it “Project Delta Email Service”, and click **Generate**.
+4. Copy the 16-character code (ignore the spaces) and use it as `GMAIL_APP_PASSWORD`. Use the same Google email address as `GMAIL_USER`.
+
+---
+
+### Email Service Setup
+
+The `email-service/` folder hosts a Node.js Express server that sends OTP emails through Gmail. 
+
+### 1. Configure Credentials
+
+Modify `email-service/.env` with the following keys:
+
+```env
+FIREBASE_TYPE=service_account // Firebase type
+
+FIREBASE_PROJECT_ID=YOUR_FIREBASE_PROJECT_ID // Firebase project ID
+
+FIREBASE_PRIVATE_KEY_ID=your-private-key-id // Firebase private key ID
+
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----Your private key here-----END PRIVATE KEY-----\n"
+
+FIREBASE_CLIENT_EMAIL=your-client-email@YOUR_PROJECT_ID.iam.gserviceaccount.com // Firebase client email
+
+FIREBASE_CLIENT_ID=your-client-id // Firebase client ID
+
+FIREBASE_AUTH_URI=https://accounts.google.com/o/oauth2/auth // Firebase auth URI
+
+FIREBASE_TOKEN_URI=https://oauth2.googleapis.com/token // Firebase token URI
+
+FIREBASE_AUTH_PROVIDER_X509_CERT_URL=https://www.googleapis.com/oauth2/v1/certs // Firebase auth provider X509 cert URL
+
+FIREBASE_CLIENT_X509_CERT_URL=https://www.googleapis.com/robot/v1/metadata/x509/your-client-email%40YOUR_PROJECT_ID.iam.gserviceaccount.com // Firebase client X509 cert URL
+
+FIREBASE_DATABASE_URL=https://YOUR_PROJECT_ID-default-rtdb.REGION.firebasedatabase.app // Firebase database URL
+
+GMAIL_USER=your-email@gmail.com // Your Gmail address
+
+GMAIL_APP_PASSWORD=your-gmail-app-password // Your Gmail app password
+```
+
+- Generate the Gmail app password after enabling 2FA in your Google account.
+- If you omit Firebase Admin credentials, the service will run in mock mode (useful for development but no password reset links).
+
+### 2. Install Dependencies & Run Locally
+
+```bash
+cd email-service # Navigate to the email service directory
+npm install . # Install dependencies
+npm start # Start the server
+```
+
+### 🚀 Deploy to Render
 
 ### Step 1: Create GitHub Repository (Public)
 
@@ -26,7 +99,7 @@ A Node.js email service for sending OTP verification emails, deployed on Render.
 3. Connect your GitHub repository
 4. Configure the service:
 
-```
+```bash
 Name: project-delta-email-service
 Environment: Node
 Build Command: npm install
@@ -37,9 +110,9 @@ Start Command: npm start
 
 In Render dashboard, go to **"Environment"** tab and add:
 
-```
-GMAIL_USER=your-email@gmail.com
-GMAIL_APP_PASSWORD=your-16-char-app-password
+```bash
+GMAIL_USER=your-email@gmail.com // Your Gmail address
+GMAIL_APP_PASSWORD=your-16-char-app-password // Your Gmail app password
 ```
 See Gmail Setup section for instructions on how to get these values.
 
@@ -47,7 +120,7 @@ See Gmail Setup section for instructions on how to get these values.
 
 Click **"Create Web Service"** and wait for deployment.
 
-## 📧 Gmail Setup
+### 📧 Gmail Setup
 
 ### Step 1: Enable 2-Factor Authentication
 
@@ -68,15 +141,15 @@ In Render dashboard, update:
 - `GMAIL_USER`: Your Gmail address
 - `GMAIL_APP_PASSWORD`: The 16-character app password
 
-## 🔗 API Endpoints
+### 🔗 API Endpoints
 
 ### Health Check
-```
+```bash
 GET https://your-service.onrender.com/
 ```
 
 ### Send OTP Email
-```
+```bash
 POST https://your-service.onrender.com/send-otp
 Content-Type: application/json
 
@@ -87,7 +160,7 @@ Content-Type: application/json
 ```
 
 ### Send Password Reset Email
-```
+```bash
 POST https://your-service.onrender.com/send-password-reset
 Content-Type: application/json
 
@@ -100,7 +173,7 @@ Content-Type: application/json
 This endpoint uses the Firebase Admin SDK to generate a password reset link and sends it via the custom email service. It's particularly useful for Microsoft 365/Outlook email addresses that often block Firebase's default password reset emails.
 
 ### Test Email
-```
+```bash
 POST https://your-service.onrender.com/test-email
 Content-Type: application/json
 
@@ -109,7 +182,7 @@ Content-Type: application/json
 }
 ```
 
-## 🔧 Update Parent App
+### 🔧 Update Parent App
 
 Once deployed, update `ParentElectronApp/js/auth-manager.js`:
 
@@ -119,7 +192,7 @@ async sendOtpEmail(email, otp) {
     // Call Render email service
     const response = await fetch('https://your-service.onrender.com/send-otp', {
       method: 'POST',
-      headers: {
+      headers: { 
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ email, otp })
@@ -149,7 +222,7 @@ async sendOtpEmail(email, otp) {
 }
 ```
 
-## 🧪 Testing
+### 🧪 Testing
 
 ### Test Locally
 ```bash
@@ -165,21 +238,21 @@ curl -X POST https://your-service.onrender.com/test-email \
   -d '{"email": "your-email@gmail.com"}'
 ```
 
-## 💰 Pricing
+### 💰 Pricing
 
 - ✅ **Free Tier**: 750 hours/month (enough for 24/7 operation)
 - ✅ **No email limits**: Send unlimited emails
 - ✅ **Custom domain**: Professional email addresses
 - ✅ **Auto-scaling**: Handles traffic spikes
 
-## 🔒 Security
+### 🔒 Security
 
 - ✅ **Environment variables**: Credentials are secure
 - ✅ **CORS protection**: Only authorized domains
 - ✅ **Input validation**: Prevents abuse
 - ✅ **Error handling**: Graceful failures
 
-## 🚨 Troubleshooting
+### 🚨 Troubleshooting
 
 ### Common Issues:
 
@@ -201,9 +274,10 @@ Microsoft 365 and Outlook often block Firebase authentication emails. This servi
 ### Logs:
 Check Render dashboard → **"Logs"** tab for detailed error information.
 
-## 📞 Support
+### 📞 Support
 
 If you encounter issues:
+
 1. Check Render logs
 2. Verify Gmail credentials
 3. Test with the health check endpoint

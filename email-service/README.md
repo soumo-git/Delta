@@ -1,43 +1,48 @@
 # 🚀 Project Delta Email Service
 
-A Node.js email service for sending OTP verification emails, deployed on Render.
+A Node.js email service for sending OTP verification emails, deployed on Render. Follow the steps below to set up and deploy.
 
-### Before you run the service, gather two things:
 
----
+## Firebase Service Account Setup
 
-#### Firebase service account (lets the server talk to Firebase as an admin)
-
-1. Open the Firebase Console, pick your project, and go to `Project settings` → `Service accounts`.
+1. Open the [Firebase Console](https://console.firebase.google.com/), pick your project, and go to `Project settings` → `Service accounts`.
 
 2. Click **Generate new private key**. A JSON file downloads to your computer.
 
 3. Open the file and copy the values into your `.env` file:
 
-   - `FIREBASE_TYPE`, 
-   - `FIREBASE_PROJECT_ID`, 
-   - `FIREBASE_PRIVATE_KEY_ID`, 
-   - `FIREBASE_CLIENT_EMAIL`, 
-   - `FIREBASE_CLIENT_ID`, 
-   - `FIREBASE_AUTH_URI`, 
-   - `FIREBASE_TOKEN_URI`, 
-   - `FIREBASE_AUTH_PROVIDER_X509_CERT_URL`, 
-   - `FIREBASE_CLIENT_X509_CERT_URL`.
+   - `FIREBASE_TYPE`, // usually "service_account"
+   - `FIREBASE_PROJECT_ID`, // Your Firebase project ID
+   - `FIREBASE_PRIVATE_KEY_ID`, // Your Firebase private key ID
+   - `FIREBASE_CLIENT_EMAIL`, // Your Firebase client email
+   - `FIREBASE_CLIENT_ID`, // Your Firebase client ID
+   - `FIREBASE_AUTH_URI`, // Firebase auth URI
+   - `FIREBASE_TOKEN_URI`, // Firebase token URI
+   - `FIREBASE_AUTH_PROVIDER_X509_CERT_URL`, // Firebase auth provider X509 cert URL
+   - `FIREBASE_CLIENT_X509_CERT_URL`. // Firebase client X509 cert URL
 
 For `FIREBASE_PRIVATE_KEY`, keep the value in quotes and replace every real line break with `\n` so Node.js can read it.
 
 In Firebase Console, open `Build` → `Realtime Database` and copy the URL shown at the top into `FIREBASE_DATABASE_URL`.
 
-#### Gmail app password (lets the server send emails from your Gmail account)
+## Gmail Setup
 
-1. Sign in to the Google account you want to send emails from.
-2. Go to `Security` → **2-Step Verification** and turn it on (required for app passwords).
-3. Still under `Security`, choose **App passwords**. Pick **Mail** as the app, choose **Other**, name it “Project Delta Email Service”, and click **Generate**.
-4. Copy the 16-character code (ignore the spaces) and use it as `GMAIL_APP_PASSWORD`. Use the same Google email address as `GMAIL_USER`.
+#### Step 1: Enable 2-Factor Authentication
+
+1. Go to [Google Account settings](https://myaccount.google.com/)
+2. Click **"Security"** → **"2-Step Verification"**
+3. Enable 2-factor authentication
+
+#### Step 2: Generate App Password
+
+1. Go to **"Security"** → **"App passwords"**
+2. Select **"Mail"** and **"Other"**
+3. Name it **"Project Delta Email Service"**
+4. Copy the 16-character password generated (no spaces) into `GMAIL_APP_PASSWORD` in your `.env` file. (You also need that in Render later.)
 
 ---
 
-### Email Service Setup
+## Email Service Setup
 
 The `email-service/` folder hosts a Node.js Express server that sends OTP emails through Gmail. 
 
@@ -73,9 +78,6 @@ GMAIL_USER=your-email@gmail.com // Your Gmail address
 GMAIL_APP_PASSWORD=your-gmail-app-password // Your Gmail app password
 ```
 
-- Generate the Gmail app password after enabling 2FA in your Google account.
-- If you omit Firebase Admin credentials, the service will run in mock mode (useful for development but no password reset links).
-
 ### 2. Install Dependencies & Run Locally
 
 ```bash
@@ -84,13 +86,13 @@ npm install . # Install dependencies
 npm start # Start the server
 ```
 
-### 🚀 Deploy to Render
+## Deploy to Render
 
 ### Step 1: Create GitHub Repository (Public)
 
-1. Create a new GitHub repository
-2. Push this `email-service` folder to your repository 
-3. Make sure the repository is public (Render free tier requirement) 
+1. Create a new [GitHub](https://github.com/new) repository.
+2. Push this `email-service` folder to your repository.
+3. Make sure the repository is public (Render free tier requirement).
 
 ### Step 2: Deploy on Render
 
@@ -118,37 +120,17 @@ See Gmail Setup section for instructions on how to get these values.
 
 ### Step 4: Deploy
 
-Click **"Create Web Service"** and wait for deployment.
+Click [**"Create Web Service"**](https://render.com/) and wait for deployment.
 
-### 📧 Gmail Setup
-
-### Step 1: Enable 2-Factor Authentication
-
-1. Go to [Google Account settings](https://myaccount.google.com/)
-2. Click **"Security"** → **"2-Step Verification"**
-3. Enable 2-factor authentication
-
-### Step 2: Generate App Password
-
-1. Go to **"Security"** → **"App passwords"**
-2. Select **"Mail"** and **"Other"**
-3. Name it **"Project Delta Email Service"**
-4. Copy the 16-character password
-
-### Step 3: Update Environment Variables
-
-In Render dashboard, update:
-- `GMAIL_USER`: Your Gmail address
-- `GMAIL_APP_PASSWORD`: The 16-character app password
-
+---
 
 ### 📞 Support
 
 If you encounter issues:
 
-1. Check Render logs
-2. Verify Gmail credentials
-3. Test with the health check endpoint
+1. Check [Render logs](https://render.com/docs/logs)
+2. Verify [Gmail credentials](https://myaccount.google.com)
+3. Test with the [health check endpoint](https://render.com/docs/deploy-web-service#health-check)
 4. Ensure environment variables are set correctly
 
 ---

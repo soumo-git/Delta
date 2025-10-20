@@ -7,4 +7,11 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="permissions_icon_tint">#1F72FF</color>
+    <color name="permissions_text_primary">#FFFFFFFF</color>
+    <color name="permissions_text_secondary">#A6A6A6</color>
+    <color name="permissions_card_stroke">#FF2C2C2C</color>
+    <color name="permissions_card_fill">#FF1E1E1E</color>
+    <color name="permissions_dialog_background">#FF121212</color>
+    <color name="permissions_info_background">#FF1F1F1F</color>
 </resources>

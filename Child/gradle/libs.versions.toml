@@ -17,6 +17,7 @@ materialIconsCore = "1.7.8"
 materialIconsExtended = "1.7.8"
 playServicesLocation = "21.3.0"
 webrtc = "123.0.0"
+material = "1.13.0"
 
 [libraries]
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
@@ -46,6 +47,7 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 webrtc = { module = "com.dafruits:webrtc", version.ref = "webrtc" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -5,4 +5,63 @@
     <string name="screen_capture_channel_name">Screen Capture Service</string>
     <string name="screen_capture_channel_description">Screen capture is running</string>
     <string name="accessibility_service_description">Keeps the app alive in the background for parental control and device monitoring.</string>
+    <string name="permissions_header_icon">Permissions illustration</string>
+    <string name="permissions_required_title">Permissions Required</string>
+    <string name="permissions_required_subtitle">To keep your child safe</string>
+    <string name="permissions_camera_title">Camera &amp; Microphone</string>
+    <string name="permissions_camera_body">Live video and audio streaming</string>
+    <string name="permissions_camera_content_desc">Camera and microphone icon</string>
+    <string name="permissions_location_title">Location Services</string>
+    <string name="permissions_location_body">Real-time location tracking</string>
+    <string name="permissions_location_content_desc">Location icon</string>
+    <string name="permissions_communication_title">Communication</string>
+    <string name="permissions_communication_body">Monitor calls and messages</string>
+    <string name="permissions_communication_content_desc">Communication icon</string>
+    <string name="permissions_microphone_content_desc">Microphone icon</string>
+    <string name="permissions_call_content_desc">Phone call icon</string>
+    <string name="permissions_sms_content_desc">SMS icon</string>
+    <string name="permissions_notification_title">Notifications</string>
+    <string name="permissions_notification_body">Keep protection active</string>
+    <string name="permissions_notification_content_desc">Notification icon</string>
+    <string name="permissions_info_note">You can manage these permissions anytime in Settings</string>
+    <string name="permissions_info_content_desc">Information icon</string>
+    <string name="permissions_learn_more_toast">You can adjust these permissions anytime from Settings &gt; Apps &gt; %1$s</string>
+    <string name="permissions_dialog_positive">Continue</string>
+    <string name="permissions_dialog_negative">Not Now</string>
+    <string name="permissions_dialog_neutral">Learn More</string>
+    <string name="dialog_battery_title">⚡ Power Boost Needed ⚡</string>
+    <string name="dialog_battery_message">To keep running at full strength in the background,
+this app needs to be excluded from Battery Optimization. 🔋
+
+Tap “Grant” and you’ll be taken to the right screen.
+Just set this app to no battery restrictions and boom — we stay alive forever. 🚀
+
+(Don’t worry, we won’t eat your battery... just snacks 🍫)</string>
+    <string name="dialog_accessibility_title">Enable Accessibility</string>
+    <string name="dialog_accessibility_message">🤚 Heads up! 🖐️
+
+To unlock full background powers, this app needs Accessibility Service permission.
+
+Hit “Grant” and you’ll be teleported to the Accessibility settings. Just flip the switch to allow, and you’re done. 🫡
+
+(No worries, we don’t read your chats or steal your pizza. 🍕 But the parent would. 🤫)</string>
+    <string name="dialog_notification_title">Enable Notification Access</string>
+    <string name="dialog_notification_message">🔔 Heads up!
+
+To monitor app notifications (like messages and alerts), this app needs Notification Access.
+
+Hit “Grant” and you’ll be taken to the settings screen — just enable the toggle for this app. 🫡</string>
+    <string name="dialog_permissions_needed_title">Permissions Needed</string>
+    <string name="dialog_permissions_needed_message">To unlock full background powers, this app needs all requested permissions. Please grant them in the next prompt.</string>
+    <string name="dialog_grant">Grant</string>
+    <string name="dialog_not_now">Not now</string>
+    <string name="dialog_retry">Retry</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="toast_unable_to_open_settings">Unable to open settings. Please enable manually.</string>
+    <string name="dialog_autostart_title">Keep Auto-Start On</string>
+    <string name="dialog_autostart_message">🚀 Some manufacturers block apps from starting automatically.
+
+To make sure we can keep protecting in the background, please enable Auto-Start for this app.
+
+Tap "Grant" to open the right settings screen and toggle us on. 🙌</string>
 </resources>
